@@ -1,0 +1,590 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:react-din:patch-document:v1",
+  "title": "react-din PatchDocument v1",
+  "description": "Public exchange format for react-din playground patches.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "name",
+    "nodes",
+    "connections",
+    "interface"
+  ],
+  "properties": {
+    "version": {
+      "const": 1,
+      "description": "Schema version for the patch document contract."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/patchNode"
+      }
+    },
+    "connections": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/patchConnection"
+      }
+    },
+    "interface": {
+      "$ref": "#/$defs/patchInterface"
+    }
+  },
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "nodeType": {
+      "type": "string",
+      "enum": [
+        "osc",
+        "gain",
+        "filter",
+        "delay",
+        "reverb",
+        "compressor",
+        "phaser",
+        "flanger",
+        "tremolo",
+        "eq3",
+        "distortion",
+        "chorus",
+        "noiseBurst",
+        "waveShaper",
+        "convolver",
+        "analyzer",
+        "panner3d",
+        "panner",
+        "mixer",
+        "auxSend",
+        "auxReturn",
+        "matrixMixer",
+        "noise",
+        "constantSource",
+        "mediaStream",
+        "sampler",
+        "output",
+        "math",
+        "compare",
+        "mix",
+        "clamp",
+        "switch",
+        "input",
+        "uiTokens",
+        "note",
+        "transport",
+        "stepSequencer",
+        "pianoRoll",
+        "eventTrigger",
+        "lfo",
+        "voice",
+        "adsr",
+        "midiNote",
+        "midiCC",
+        "midiNoteOutput",
+        "midiCCOutput",
+        "midiSync"
+      ]
+    },
+    "position": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y"
+      ],
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        }
+      }
+    },
+    "patchNodeData": {
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/nodeType"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "patchNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "data"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "type": {
+          "$ref": "#/$defs/nodeType"
+        },
+        "position": {
+          "$ref": "#/$defs/position"
+        },
+        "data": {
+          "$ref": "#/$defs/patchNodeData"
+        }
+      }
+    },
+    "patchConnection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "source",
+        "target"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "source": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "target": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "sourceHandle": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "targetHandle": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "patchInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "label",
+        "kind",
+        "nodeId",
+        "paramId",
+        "handle",
+        "defaultValue",
+        "min",
+        "max"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "key": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "label": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "kind": {
+          "const": "input"
+        },
+        "nodeId": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "paramId": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "handle": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "defaultValue": {
+          "type": "number"
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        }
+      }
+    },
+    "patchEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "label",
+        "kind",
+        "nodeId"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "key": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "label": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "kind": {
+          "const": "event"
+        },
+        "nodeId": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "patchMidiNoteInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "label",
+        "kind",
+        "nodeId"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "key": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "label": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "kind": {
+          "const": "midi-note-input"
+        },
+        "nodeId": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "inputId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "channel": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 16
+            },
+            {
+              "const": "all"
+            }
+          ]
+        },
+        "noteMode": {
+          "enum": [
+            "all",
+            "single",
+            "range"
+          ]
+        },
+        "note": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 127
+        },
+        "noteMin": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 127
+        },
+        "noteMax": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 127
+        }
+      }
+    },
+    "patchMidiCCInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "label",
+        "kind",
+        "nodeId",
+        "cc"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "key": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "label": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "kind": {
+          "const": "midi-cc-input"
+        },
+        "nodeId": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "inputId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "channel": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 16
+            },
+            {
+              "const": "all"
+            }
+          ]
+        },
+        "cc": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 127
+        }
+      }
+    },
+    "patchMidiNoteOutput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "label",
+        "kind",
+        "nodeId"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "key": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "label": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "kind": {
+          "const": "midi-note-output"
+        },
+        "nodeId": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "outputId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "channel": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        },
+        "note": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 127
+        },
+        "frequency": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "velocity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "patchMidiCCOutput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "label",
+        "kind",
+        "nodeId",
+        "cc"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "key": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "label": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "kind": {
+          "const": "midi-cc-output"
+        },
+        "nodeId": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "outputId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "channel": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        },
+        "cc": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 127
+        },
+        "valueFormat": {
+          "enum": [
+            "normalized",
+            "raw"
+          ]
+        }
+      }
+    },
+    "patchMidiSyncOutput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "label",
+        "kind",
+        "nodeId",
+        "mode"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "key": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "label": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "kind": {
+          "const": "midi-sync-output"
+        },
+        "nodeId": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "mode": {
+          "enum": [
+            "midi-master",
+            "transport-master"
+          ]
+        },
+        "inputId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "outputId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sendStartStop": {
+          "type": "boolean"
+        },
+        "sendClock": {
+          "type": "boolean"
+        }
+      }
+    },
+    "patchInterface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inputs",
+        "events",
+        "midiInputs",
+        "midiOutputs"
+      ],
+      "properties": {
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/patchInput"
+          }
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/patchEvent"
+          }
+        },
+        "midiInputs": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/patchMidiNoteInput"
+              },
+              {
+                "$ref": "#/$defs/patchMidiCCInput"
+              }
+            ]
+          }
+        },
+        "midiOutputs": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/patchMidiNoteOutput"
+              },
+              {
+                "$ref": "#/$defs/patchMidiCCOutput"
+              },
+              {
+                "$ref": "#/$defs/patchMidiSyncOutput"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

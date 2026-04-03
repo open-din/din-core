@@ -1,0 +1,22 @@
+[package]
+name = "din-wasm"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["rlib", "cdylib"]
+
+[dependencies]
+din-core = { path = "../din-core" }
+din-patch = { path = "../din-patch" }
+serde.workspace = true
+serde_json.workspace = true
+serde-wasm-bindgen.workspace = true
+thiserror.workspace = true
+wasm-bindgen.workspace = true
+
+[lints]
+workspace = true

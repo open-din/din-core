@@ -1,0 +1,285 @@
+{
+  "version": 1,
+  "name": "Canonical Voice Patch",
+  "nodes": [
+    {
+      "id": "transport-1",
+      "type": "transport",
+      "position": { "x": 0, "y": 0 },
+      "data": {
+        "type": "transport",
+        "label": "Transport",
+        "bpm": 120,
+        "stepsPerBeat": 4
+      }
+    },
+    {
+      "id": "step-1",
+      "type": "stepSequencer",
+      "position": { "x": 150, "y": 0 },
+      "data": {
+        "type": "stepSequencer",
+        "label": "Main Steps",
+        "steps": 16
+      }
+    },
+    {
+      "id": "event-1",
+      "type": "eventTrigger",
+      "position": { "x": 150, "y": 140 },
+      "data": {
+        "type": "eventTrigger",
+        "label": "Bang"
+      }
+    },
+    {
+      "id": "midi-note-1",
+      "type": "midiNote",
+      "position": { "x": 150, "y": 260 },
+      "data": {
+        "type": "midiNote",
+        "label": "Keys",
+        "channel": "all"
+      }
+    },
+    {
+      "id": "voice-1",
+      "type": "voice",
+      "position": { "x": 320, "y": 0 },
+      "data": {
+        "type": "voice",
+        "label": "Voice 1",
+        "portamento": 0.02
+      }
+    },
+    {
+      "id": "osc-1",
+      "type": "osc",
+      "position": { "x": 500, "y": 0 },
+      "data": {
+        "type": "osc",
+        "label": "Osc 1",
+        "frequency": 220,
+        "autoStart": true
+      }
+    },
+    {
+      "id": "adsr-1",
+      "type": "adsr",
+      "position": { "x": 500, "y": 120 },
+      "data": {
+        "type": "adsr",
+        "label": "Env 1",
+        "attack": 0.01,
+        "decay": 0.2,
+        "sustain": 0.7,
+        "release": 0.3
+      }
+    },
+    {
+      "id": "lfo-1",
+      "type": "lfo",
+      "position": { "x": 320, "y": 240 },
+      "data": {
+        "type": "lfo",
+        "label": "LFO 1",
+        "rate": 2,
+        "depth": 0.5
+      }
+    },
+    {
+      "id": "input-1",
+      "type": "input",
+      "position": { "x": 320, "y": 380 },
+      "data": {
+        "type": "input",
+        "label": "Params",
+        "params": [
+          {
+            "id": "cutoff",
+            "label": "Cutoff",
+            "defaultValue": 0.5,
+            "min": 0,
+            "max": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "filter-1",
+      "type": "filter",
+      "position": { "x": 700, "y": 0 },
+      "data": {
+        "type": "filter",
+        "label": "Filter 1",
+        "frequency": 1200,
+        "q": 1.2
+      }
+    },
+    {
+      "id": "gain-1",
+      "type": "gain",
+      "position": { "x": 900, "y": 0 },
+      "data": {
+        "type": "gain",
+        "label": "Gain 1",
+        "gain": 0.6
+      }
+    },
+    {
+      "id": "sampler-1",
+      "type": "sampler",
+      "position": { "x": 700, "y": 140 },
+      "data": {
+        "type": "sampler",
+        "label": "Sampler 1",
+        "assetPath": "/samples/kick.wav"
+      }
+    },
+    {
+      "id": "convolver-1",
+      "type": "convolver",
+      "position": { "x": 900, "y": 140 },
+      "data": {
+        "type": "convolver",
+        "label": "Impulse",
+        "assetPath": "/impulses/room.wav"
+      }
+    },
+    {
+      "id": "midi-cc-out-1",
+      "type": "midiCCOutput",
+      "position": { "x": 900, "y": 260 },
+      "data": {
+        "type": "midiCCOutput",
+        "label": "Cutoff Out",
+        "cc": 74,
+        "channel": 1,
+        "valueFormat": "normalized"
+      }
+    },
+    {
+      "id": "output-1",
+      "type": "output",
+      "position": { "x": 1100, "y": 0 },
+      "data": {
+        "type": "output",
+        "label": "Output",
+        "masterGain": 0.8
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "transport-steps",
+      "source": "transport-1",
+      "target": "step-1",
+      "sourceHandle": "out",
+      "targetHandle": "transport"
+    },
+    {
+      "id": "steps-voice-trigger",
+      "source": "step-1",
+      "target": "voice-1",
+      "sourceHandle": "trigger",
+      "targetHandle": "trigger"
+    },
+    {
+      "id": "midi-voice-trigger",
+      "source": "midi-note-1",
+      "target": "voice-1",
+      "sourceHandle": "trigger",
+      "targetHandle": "trigger"
+    },
+    {
+      "id": "voice-osc-note",
+      "source": "voice-1",
+      "target": "osc-1",
+      "sourceHandle": "note",
+      "targetHandle": "frequency"
+    },
+    {
+      "id": "voice-adsr-gate",
+      "source": "voice-1",
+      "target": "adsr-1",
+      "sourceHandle": "gate",
+      "targetHandle": "gate"
+    },
+    {
+      "id": "adsr-gain",
+      "source": "adsr-1",
+      "target": "gain-1",
+      "sourceHandle": "envelope",
+      "targetHandle": "gain"
+    },
+    {
+      "id": "lfo-filter",
+      "source": "lfo-1",
+      "target": "filter-1",
+      "sourceHandle": "out",
+      "targetHandle": "frequency"
+    },
+    {
+      "id": "input-filter",
+      "source": "input-1",
+      "target": "filter-1",
+      "sourceHandle": "param:cutoff",
+      "targetHandle": "frequency"
+    },
+    {
+      "id": "osc-filter",
+      "source": "osc-1",
+      "target": "filter-1",
+      "sourceHandle": "out",
+      "targetHandle": "in"
+    },
+    {
+      "id": "filter-gain",
+      "source": "filter-1",
+      "target": "gain-1",
+      "sourceHandle": "out",
+      "targetHandle": "in"
+    },
+    {
+      "id": "gain-output",
+      "source": "gain-1",
+      "target": "output-1",
+      "sourceHandle": "out",
+      "targetHandle": "in"
+    },
+    {
+      "id": "event-sampler",
+      "source": "event-1",
+      "target": "sampler-1",
+      "sourceHandle": "trigger",
+      "targetHandle": "trigger"
+    },
+    {
+      "id": "sampler-convolver",
+      "source": "sampler-1",
+      "target": "convolver-1",
+      "sourceHandle": "out",
+      "targetHandle": "in"
+    },
+    {
+      "id": "convolver-output",
+      "source": "convolver-1",
+      "target": "output-1",
+      "sourceHandle": "out",
+      "targetHandle": "in"
+    },
+    {
+      "id": "midi-cc-out",
+      "source": "midi-note-1",
+      "target": "midi-cc-out-1",
+      "sourceHandle": "velocity",
+      "targetHandle": "value"
+    }
+  ],
+  "interface": {
+    "inputs": [],
+    "events": [],
+    "midiInputs": [],
+    "midiOutputs": []
+  }
+}

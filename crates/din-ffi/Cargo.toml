@@ -1,0 +1,19 @@
+[package]
+name = "din-ffi"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["rlib", "cdylib"]
+
+[dependencies]
+din-core = { path = "../din-core" }
+din-patch = { path = "../din-patch" }
+serde_json.workspace = true
+thiserror.workspace = true
+
+[lints]
+workspace = true
