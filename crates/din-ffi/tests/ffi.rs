@@ -37,7 +37,9 @@ fn ffi_can_validate_create_and_render() {
             .into_owned()
     };
     assert!(interface_json.contains("\"cutoff\""));
-    din_string_free(interface_json_ptr);
+    unsafe {
+        din_string_free(interface_json_ptr);
+    }
 
     let engine = din_engine_create(graph, 48_000.0, 2, 64, &mut error);
     assert!(!engine.is_null(), "engine handle should be created");

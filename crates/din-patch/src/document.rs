@@ -231,7 +231,7 @@ pub fn patch_to_graph_document(
             position: node
                 .position
                 .clone()
-                .or_else(|| Some(PatchPosition { x: 0.0, y: 0.0 })),
+                .or(Some(PatchPosition { x: 0.0, y: 0.0 })),
             drag_handle: Some(".node-header".to_string()),
             data: hydrate_node_data_for_graph(&node.data),
         })
@@ -476,22 +476,22 @@ fn validate_connection(
         });
     }
 
-    if let Some(handle) = &connection.source_handle {
-        if !get_source_handle_ids(source_node).contains(handle) {
-            return Err(PatchError::UnsupportedSourceHandle {
-                connection_id: connection.id.clone(),
-                handle: handle.clone(),
-            });
-        }
+    if let Some(handle) = &connection.source_handle
+        && !get_source_handle_ids(source_node).contains(handle)
+    {
+        return Err(PatchError::UnsupportedSourceHandle {
+            connection_id: connection.id.clone(),
+            handle: handle.clone(),
+        });
     }
 
-    if let Some(handle) = &connection.target_handle {
-        if !get_target_handle_ids(target_node).contains(handle) {
-            return Err(PatchError::UnsupportedTargetHandle {
-                connection_id: connection.id.clone(),
-                handle: handle.clone(),
-            });
-        }
+    if let Some(handle) = &connection.target_handle
+        && !get_target_handle_ids(target_node).contains(handle)
+    {
+        return Err(PatchError::UnsupportedTargetHandle {
+            connection_id: connection.id.clone(),
+            handle: handle.clone(),
+        });
     }
 
     Ok(())
@@ -1054,8 +1054,7 @@ fn resolve_convolver_asset_path(data: &PatchNodeData) -> String {
 fn file_name_from_path(path: &str) -> Option<String> {
     path.trim()
         .split(['/', '\\'])
-        .filter(|segment| !segment.is_empty())
-        .next_back()
+        .rfind(|segment| !segment.is_empty())
         .map(ToOwned::to_owned)
 }
 

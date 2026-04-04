@@ -212,10 +212,9 @@ impl Engine {
                 .inputs
                 .iter()
                 .find(|input| input.node_id == node.id && input.param_id.eq_ignore_ascii_case(key))
+                && let Some(value) = self.input_values.get(&interface_input.key)
             {
-                if let Some(value) = self.input_values.get(&interface_input.key) {
-                    return *value;
-                }
+                return *value;
             }
         }
         fallback

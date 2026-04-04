@@ -11,8 +11,12 @@ pub struct DinEngineHandle {
     engine: Engine,
 }
 
+/// Frees a C string previously returned by this library (for example [`din_graph_interface_json`]).
+///
+/// # Safety
+/// `value` must be null or a pointer returned by this FFI that has not been freed yet.
 #[unsafe(no_mangle)]
-pub extern "C" fn din_string_free(value: *mut c_char) {
+pub unsafe extern "C" fn din_string_free(value: *mut c_char) {
     if value.is_null() {
         return;
     }
