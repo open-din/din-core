@@ -1,0 +1,7 @@
+---
+description: Patch and registry crates
+globs: crates/din-patch/**,crates/din-core/**
+alwaysApply: false
+---
+
+Follow @AGENTS.md. Use @project/skills/patch-contract-change/SKILL.md and @project/skills/registry-parity/SKILL.md. Authoritative references: `schemas/patch.schema.json`, `fixtures/canonical_patch.json`.

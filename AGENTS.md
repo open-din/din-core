@@ -1,5 +1,7 @@
 # AGENTS
 
+Canonical contract for Codex, Claude, Cursor, and other agents. Product narratives live in `project/SUMMARY.md`, `project/USERFLOW.md`, and `project/TEST_MATRIX.md`—cite them; do not duplicate them here. Portable workflows: `project/skills/*/SKILL.md`.
+
 ## Product rule
 
 Keep `react-din` patch compatibility as the top external contract for this repository.
@@ -21,3 +23,13 @@ Keep `react-din` patch compatibility as the top external contract for this repos
 - Every supported patch node type must appear in registry parity tests.
 - Patch migration and round-trip tests must preserve interface metadata and asset paths.
 - FFI and WASM wrappers should stay thin and reuse Rust-native logic.
+
+## Quality gates (pre-merge)
+
+Run from the repository root:
+
+1. `cargo fmt --all --check`
+2. `cargo clippy --workspace --all-targets -- -D warnings`
+3. `cargo test --workspace`
+
+Schema and fixtures that mirror the public patch contract: `schemas/patch.schema.json`, `fixtures/canonical_patch.json`.

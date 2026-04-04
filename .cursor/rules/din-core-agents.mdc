@@ -1,0 +1,7 @@
+---
+description: din-core canonical agent contract
+globs: *
+alwaysApply: true
+---
+
+Follow @AGENTS.md. Context: `project/SUMMARY.md`, `project/USERFLOW.md`, `project/TEST_MATRIX.md`. Playbooks: @project/skills.
