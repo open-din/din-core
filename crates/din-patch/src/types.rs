@@ -77,6 +77,7 @@ node_kinds! {
     MidiNoteOutput => "midiNoteOutput",
     MidiCcOutput => "midiCCOutput",
     MidiSync => "midiSync",
+    MidiPlayer => "midiPlayer",
 }
 
 impl NodeKind {

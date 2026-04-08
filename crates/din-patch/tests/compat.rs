@@ -70,4 +70,14 @@ fn patch_round_trip_preserves_assets_and_connections() {
         convolver.data.get_string("assetPath"),
         Some("/impulses/room.wav")
     );
+
+    let midi_player = round_trip
+        .nodes
+        .iter()
+        .find(|node| node.id == "midi-player-1")
+        .expect("midi player node should exist");
+    assert_eq!(
+        midi_player.data.get_string("assetPath"),
+        Some("/midi/clip.mid")
+    );
 }

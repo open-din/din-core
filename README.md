@@ -13,6 +13,33 @@
 - `crates/din-ffi`: C ABI wrapper over patch and engine APIs.
 - `crates/din-wasm`: WebAssembly-facing patch/model helpers.
 
+## Quickstart (Rust / `din-patch`)
+
+Typical flow for host tooling: parse interchange JSON, validate invariants, then (optionally) serialize again.
+
+```rust
+use din_patch::{parse_patch_document, validate_patch_document, PatchError};
+
+fn load() -> Result<(), PatchError> {
+    let json = std::fs::read_to_string("fixtures/canonical_patch.json").map_err(|e| {
+        PatchError::Invalid(format!("read fixture: {e}"))
+    })?;
+    let patch = parse_patch_document(&json)?;
+    validate_patch_document(&patch)?;
+    Ok(())
+}
+```
+
+- Authoritative JSON shape: `schemas/patch.schema.json`.
+- Fixture used in tests and docs: `fixtures/canonical_patch.json`.
+- Node `type` fields must match the workspace registry (for example `osc`, `stepSequencer`, `midiCC`); see `AGENTS.md` and `project/TEST_MATRIX.md`.
+
+Runnable example (validate + serde round-trip check):
+
+```bash
+cargo run -p din-patch --example parse_canonical_patch
+```
+
 ## Current v1 scope
 
 - Keep `PatchDocument v1` from `react-din` as the public exchange format.

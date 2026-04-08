@@ -303,7 +303,7 @@ pub fn get_transport_connections(
         if source_node.data.kind == NodeKind::Transport
             && matches!(
                 target_node.data.kind,
-                NodeKind::StepSequencer | NodeKind::PianoRoll
+                NodeKind::StepSequencer | NodeKind::PianoRoll | NodeKind::MidiPlayer
             )
             && connection.source_handle.as_deref() == Some("out")
             && connection.target_handle.as_deref() == Some("transport")
@@ -393,6 +393,13 @@ fn sanitize_node_data(data: &PatchNodeData) -> PatchNodeData {
         next.remove("impulseId");
     }
 
+    if next.kind == NodeKind::MidiPlayer {
+        let asset_path = resolve_midi_player_asset_path(&next);
+        next.insert("assetPath", Value::String(asset_path));
+        next.remove("midiFileId");
+        next.remove("loaded");
+    }
+
     if matches!(next.kind, NodeKind::Output | NodeKind::Transport) {
         next.insert("playing", Value::Bool(false));
     }
@@ -432,6 +439,21 @@ fn hydrate_node_data_for_graph(data: &PatchNodeData) -> PatchNodeData {
         next.insert("impulseSrc", Value::String(String::new()));
         next.insert("impulseId", Value::String(String::new()));
         next.insert("impulseFileName", Value::String(file_name));
+    }
+
+    if next.kind == NodeKind::MidiPlayer {
+        let asset_path = resolve_midi_player_asset_path(&next);
+        let file_name = next
+            .get_string("midiFileName")
+            .map(ToOwned::to_owned)
+            .filter(|value| !value.trim().is_empty())
+            .unwrap_or_else(|| {
+                file_name_from_path(&asset_path).unwrap_or_else(|| "clip.mid".to_string())
+            });
+        next.insert("assetPath", Value::String(asset_path.clone()));
+        next.insert("midiFileId", Value::String(String::new()));
+        next.insert("midiFileName", Value::String(file_name));
+        next.insert("loaded", Value::Bool(false));
     }
 
     if matches!(next.kind, NodeKind::Output | NodeKind::Transport) {
@@ -851,7 +873,10 @@ pub fn get_source_handle_ids(node: &PatchNode) -> BTreeSet<String> {
         NodeKind::Transport => {
             handle_ids.insert("out".to_string());
         }
-        NodeKind::StepSequencer | NodeKind::PianoRoll | NodeKind::EventTrigger => {
+        NodeKind::StepSequencer
+        | NodeKind::PianoRoll
+        | NodeKind::EventTrigger
+        | NodeKind::MidiPlayer => {
             handle_ids.insert("trigger".to_string());
         }
         NodeKind::Lfo => {
@@ -915,7 +940,10 @@ pub fn get_target_handle_ids(node: &PatchNode) -> BTreeSet<String> {
     if node.kind == NodeKind::EventTrigger {
         handle_ids.insert("token".to_string());
     }
-    if matches!(node.kind, NodeKind::StepSequencer | NodeKind::PianoRoll) {
+    if matches!(
+        node.kind,
+        NodeKind::StepSequencer | NodeKind::PianoRoll | NodeKind::MidiPlayer
+    ) {
         handle_ids.insert("transport".to_string());
     }
     if node.kind == NodeKind::Lfo {
@@ -1049,6 +1077,20 @@ fn resolve_convolver_asset_path(data: &PatchNodeData) -> String {
         .and_then(file_name_from_path)
         .unwrap_or_else(|| "impulse.wav".to_string());
     format!("/impulses/{file_name}")
+}
+
+fn resolve_midi_player_asset_path(data: &PatchNodeData) -> String {
+    if let Some(asset_path) = data
+        .get_string("assetPath")
+        .filter(|value| !value.is_empty())
+    {
+        return asset_path.to_string();
+    }
+    let file_name = data
+        .get_string("midiFileName")
+        .and_then(file_name_from_path)
+        .unwrap_or_else(|| "clip.mid".to_string());
+    format!("/midi/{file_name}")
 }
 
 fn file_name_from_path(path: &str) -> Option<String> {

@@ -338,6 +338,14 @@ pub const NODE_REGISTRY: &[NodeRegistryEntry] = &[
         "MidiSyncNode",
         None,
     ),
+    entry(
+        NodeKind::MidiPlayer,
+        "midi_player",
+        "MidiPlayerNode",
+        "MidiPlayer",
+        "MidiPlayerNode",
+        None,
+    ),
 ];
 
 pub fn node_registry() -> &'static [NodeRegistryEntry] {
