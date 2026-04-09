@@ -346,6 +346,14 @@ pub const NODE_REGISTRY: &[NodeRegistryEntry] = &[
         "MidiPlayerNode",
         None,
     ),
+    entry(
+        NodeKind::Patch,
+        "patch",
+        "PatchNode",
+        "Patch",
+        "PatchNode",
+        Some("contract supported, native runtime v1 unsupported"),
+    ),
 ];
 
 pub fn node_registry() -> &'static [NodeRegistryEntry] {

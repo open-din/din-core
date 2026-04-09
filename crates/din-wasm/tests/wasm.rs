@@ -14,6 +14,6 @@ fn wasm_helpers_reuse_shared_patch_logic() {
     assert_eq!(interface.events.len(), 1);
 
     let compiled = compile_patch_impl(FIXTURE).expect("compile should succeed");
-    assert_eq!(compiled.audio_connections.len(), 5);
+    assert_eq!(compiled.audio_connections.len(), 9);
     assert_eq!(compiled.transport_connections.len(), 1);
 }

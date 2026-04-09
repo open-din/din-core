@@ -78,6 +78,7 @@ node_kinds! {
     MidiCcOutput => "midiCCOutput",
     MidiSync => "midiSync",
     MidiPlayer => "midiPlayer",
+    Patch => "patch",
 }
 
 impl NodeKind {
@@ -124,6 +125,14 @@ impl NodeKind {
     pub const fn is_input_like(self) -> bool {
         matches!(self, Self::Input | Self::UiTokens)
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
+pub enum SlotType {
+    #[serde(rename = "audio")]
+    Audio,
+    #[serde(rename = "midi")]
+    Midi,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
@@ -193,6 +202,24 @@ pub struct PatchPosition {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PatchSlot {
+    pub id: String,
+    pub label: String,
+    #[serde(rename = "type")]
+    pub slot_type: SlotType,
+    #[serde(flatten)]
+    pub properties: BTreeMap<String, Value>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PatchAudioMetadata {
+    pub input: PatchSlot,
+    pub output: PatchSlot,
+    #[serde(flatten)]
+    pub properties: BTreeMap<String, Value>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PatchNodeData {
     #[serde(rename = "type")]
     pub kind: NodeKind,
@@ -203,6 +230,10 @@ pub struct PatchNodeData {
 }
 
 impl PatchNodeData {
+    pub fn get_value(&self, key: &str) -> Option<&Value> {
+        self.properties.get(key)
+    }
+
     pub fn get_number(&self, key: &str) -> Option<f64> {
         self.properties.get(key).and_then(Value::as_f64)
     }

@@ -2,10 +2,11 @@ use crate::error::{PatchError, Result};
 use crate::naming::{ensure_unique_name, reserved_identifiers, to_safe_identifier};
 use crate::types::{
     AllLiteral, GraphConnectionLike, GraphDocumentLike, GraphNodeLike, MidiChannelSelector,
-    MidiTransportSyncMode, MidiValueFormat, NodeKind, NoteMode, PatchConnection, PatchDocument,
-    PatchEvent, PatchInput, PatchInterface, PatchMidiCcInput, PatchMidiCcOutput, PatchMidiInput,
-    PatchMidiNoteInput, PatchMidiNoteOutput, PatchMidiOutput, PatchMidiSyncOutput, PatchNode,
-    PatchNodeData, PatchPosition, PatchToGraphOptions,
+    MidiTransportSyncMode, MidiValueFormat, NodeKind, NoteMode, PatchAudioMetadata,
+    PatchConnection, PatchDocument, PatchEvent, PatchInput, PatchInterface, PatchMidiCcInput,
+    PatchMidiCcOutput, PatchMidiInput, PatchMidiNoteInput, PatchMidiNoteOutput, PatchMidiOutput,
+    PatchMidiSyncOutput, PatchNode, PatchNodeData, PatchPosition, PatchSlot, PatchToGraphOptions,
+    SlotType,
 };
 use serde_json::{Value, json};
 use std::collections::{BTreeMap, BTreeSet};
@@ -65,6 +66,12 @@ const MODULATION_TARGET_HANDLES: &[&str] = &[
     "t",
     "index",
 ];
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum PatchSlotDirection {
+    Input,
+    Output,
+}
 
 pub fn parse_patch_document(json: &str) -> Result<PatchDocument> {
     let patch: PatchDocument = serde_json::from_str(json)?;
@@ -314,6 +321,228 @@ pub fn get_transport_connections(
     connected
 }
 
+fn normalize_slot_type(value: Option<&Value>, fallback: SlotType) -> SlotType {
+    match value.and_then(Value::as_str) {
+        Some("audio") => SlotType::Audio,
+        Some("midi") => SlotType::Midi,
+        _ => fallback,
+    }
+}
+
+fn normalize_patch_slot(
+    slot: Option<&Value>,
+    fallback_id: String,
+    fallback_label: String,
+) -> PatchSlot {
+    let object = slot.and_then(Value::as_object);
+    let mut properties = object
+        .map(|map| {
+            map.iter()
+                .map(|(key, value)| (key.clone(), value.clone()))
+                .collect::<BTreeMap<_, _>>()
+        })
+        .unwrap_or_default();
+    let id = object
+        .and_then(|map| map.get("id"))
+        .and_then(Value::as_str)
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(ToOwned::to_owned)
+        .unwrap_or(fallback_id);
+    let label = object
+        .and_then(|map| map.get("label"))
+        .and_then(Value::as_str)
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(ToOwned::to_owned)
+        .unwrap_or(fallback_label);
+    let slot_type = normalize_slot_type(object.and_then(|map| map.get("type")), SlotType::Audio);
+
+    properties.insert("id".to_string(), Value::String(id.clone()));
+    properties.insert("label".to_string(), Value::String(label.clone()));
+    properties.insert(
+        "type".to_string(),
+        Value::String(match slot_type {
+            SlotType::Audio => "audio".to_string(),
+            SlotType::Midi => "midi".to_string(),
+        }),
+    );
+
+    PatchSlot {
+        id,
+        label,
+        slot_type,
+        properties,
+    }
+}
+
+fn normalize_patch_slot_list(
+    data: &PatchNodeData,
+    direction: PatchSlotDirection,
+) -> Vec<PatchSlot> {
+    let key = match direction {
+        PatchSlotDirection::Input => "inputs",
+        PatchSlotDirection::Output => "outputs",
+    };
+    let implicit_id = match direction {
+        PatchSlotDirection::Input => "in",
+        PatchSlotDirection::Output => "out",
+    };
+    let fallback_prefix = match direction {
+        PatchSlotDirection::Input => "input",
+        PatchSlotDirection::Output => "output",
+    };
+    let fallback_label_prefix = match direction {
+        PatchSlotDirection::Input => "Input",
+        PatchSlotDirection::Output => "Output",
+    };
+
+    data.get_value(key)
+        .and_then(Value::as_array)
+        .map(|slots| {
+            slots
+                .iter()
+                .enumerate()
+                .filter_map(|(index, slot)| {
+                    let normalized = normalize_patch_slot(
+                        Some(slot),
+                        format!("{fallback_prefix}-{}", index + 1),
+                        format!("{fallback_label_prefix} {}", index + 1),
+                    );
+                    if normalized.id == implicit_id && normalized.slot_type == SlotType::Audio {
+                        None
+                    } else {
+                        Some(normalized)
+                    }
+                })
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default()
+}
+
+fn normalize_patch_audio_slot(slot: Option<&Value>, direction: PatchSlotDirection) -> PatchSlot {
+    let fallback_label = match direction {
+        PatchSlotDirection::Input => "Audio In".to_string(),
+        PatchSlotDirection::Output => "Audio Out".to_string(),
+    };
+    let mut normalized = normalize_patch_slot(
+        slot,
+        match direction {
+            PatchSlotDirection::Input => "in".to_string(),
+            PatchSlotDirection::Output => "out".to_string(),
+        },
+        fallback_label,
+    );
+    normalized.id = match direction {
+        PatchSlotDirection::Input => "in".to_string(),
+        PatchSlotDirection::Output => "out".to_string(),
+    };
+    normalized.slot_type = SlotType::Audio;
+    normalized
+        .properties
+        .insert("id".to_string(), Value::String(normalized.id.clone()));
+    normalized
+        .properties
+        .insert("type".to_string(), Value::String("audio".to_string()));
+    normalized
+}
+
+fn normalize_patch_audio_metadata(data: &PatchNodeData) -> PatchAudioMetadata {
+    let properties = data
+        .get_value("audio")
+        .and_then(Value::as_object)
+        .map(|map| {
+            map.iter()
+                .map(|(key, value)| (key.clone(), value.clone()))
+                .collect::<BTreeMap<_, _>>()
+        })
+        .unwrap_or_default();
+    let audio = data.get_value("audio").and_then(Value::as_object);
+
+    PatchAudioMetadata {
+        input: normalize_patch_audio_slot(
+            audio.and_then(|value| value.get("input")),
+            PatchSlotDirection::Input,
+        ),
+        output: normalize_patch_audio_slot(
+            audio.and_then(|value| value.get("output")),
+            PatchSlotDirection::Output,
+        ),
+        properties,
+    }
+}
+
+fn resolve_patch_name(data: &PatchNodeData) -> String {
+    if let Some(value) = data
+        .get_string("patchName")
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+    {
+        return value.to_string();
+    }
+
+    if let Some(value) = data
+        .get_value("patchInline")
+        .and_then(Value::as_object)
+        .and_then(|patch| patch.get("name"))
+        .and_then(Value::as_str)
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+    {
+        return value.to_string();
+    }
+
+    if let Some(asset_name) = data.get_string("patchAsset").and_then(file_name_from_path) {
+        let stripped = asset_name
+            .trim_end_matches(".patch.json")
+            .trim_end_matches(".din")
+            .trim();
+        return if stripped.is_empty() {
+            asset_name
+        } else {
+            stripped.to_string()
+        };
+    }
+
+    "Patch".to_string()
+}
+
+fn patch_slot_value(slot: &PatchSlot) -> Value {
+    let mut map = serde_json::Map::new();
+    for (key, value) in &slot.properties {
+        map.insert(key.clone(), value.clone());
+    }
+    Value::Object(map)
+}
+
+fn patch_audio_metadata_value(audio: &PatchAudioMetadata) -> Value {
+    let mut map = serde_json::Map::new();
+    for (key, value) in &audio.properties {
+        map.insert(key.clone(), value.clone());
+    }
+    map.insert("input".to_string(), patch_slot_value(&audio.input));
+    map.insert("output".to_string(), patch_slot_value(&audio.output));
+    Value::Object(map)
+}
+
+fn get_patch_slot_handle_ids(node: &PatchNode, direction: PatchSlotDirection) -> BTreeSet<String> {
+    let mut handle_ids = BTreeSet::new();
+    let implicit_handle = match direction {
+        PatchSlotDirection::Input => "in",
+        PatchSlotDirection::Output => "out",
+    };
+    let prefix = match direction {
+        PatchSlotDirection::Input => "in:",
+        PatchSlotDirection::Output => "out:",
+    };
+
+    handle_ids.insert(implicit_handle.to_string());
+    for slot in normalize_patch_slot_list(&node.data, direction) {
+        handle_ids.insert(format!("{prefix}{}", slot.id));
+    }
+    handle_ids
+}
+
 pub fn is_audio_connection_like(
     connection: &PatchConnection,
     node_by_id: &BTreeMap<String, &PatchNode>,
@@ -321,17 +550,33 @@ pub fn is_audio_connection_like(
     let Some(source_node) = node_by_id.get(&connection.source) else {
         return false;
     };
-    if !source_node.data.kind.is_audio_node() {
+    let source_handle = connection.source_handle.as_deref().unwrap_or_default();
+    let target_handle = connection.target_handle.as_deref().unwrap_or_default();
+    let is_audio_target_handle = target_handle == "in" || target_handle.starts_with("in");
+
+    if source_node.data.kind.is_audio_node() {
+        let is_audio_out_handle = source_handle == "out"
+            || source_handle.strip_prefix("out").is_some_and(|suffix| {
+                !suffix.is_empty() && suffix.chars().all(|ch| ch.is_ascii_digit())
+            });
+        return is_audio_out_handle && is_audio_target_handle;
+    }
+
+    if source_node.data.kind != NodeKind::Patch
+        || !(source_handle == "out" || source_handle.starts_with("out:"))
+    {
         return false;
     }
 
-    let source_handle = connection.source_handle.as_deref().unwrap_or_default();
-    let is_audio_out_handle = source_handle == "out"
-        || source_handle.strip_prefix("out").is_some_and(|suffix| {
-            !suffix.is_empty() && suffix.chars().all(|ch| ch.is_ascii_digit())
-        });
-    let target_handle = connection.target_handle.as_deref().unwrap_or_default();
-    is_audio_out_handle && (target_handle == "in" || target_handle.starts_with("in"))
+    if source_handle == "out" {
+        return is_audio_target_handle;
+    }
+
+    let output_id = &source_handle["out:".len()..];
+    normalize_patch_slot_list(&source_node.data, PatchSlotDirection::Output)
+        .into_iter()
+        .find(|slot| slot.id == output_id)
+        .is_some_and(|slot| slot.slot_type == SlotType::Audio && is_audio_target_handle)
 }
 
 fn normalize_patch_node(node: &GraphNodeLike) -> Result<PatchNode> {
@@ -398,6 +643,45 @@ fn sanitize_node_data(data: &PatchNodeData) -> PatchNodeData {
         next.insert("assetPath", Value::String(asset_path));
         next.remove("midiFileId");
         next.remove("loaded");
+    }
+
+    if next.kind == NodeKind::Patch {
+        match next
+            .get_string("patchAsset")
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+        {
+            Some(asset_path) => {
+                next.insert("patchAsset", Value::String(asset_path.to_string()));
+            }
+            None => {
+                next.remove("patchAsset");
+            }
+        }
+
+        next.insert("patchName", Value::String(resolve_patch_name(&next)));
+        next.insert(
+            "inputs",
+            Value::Array(
+                normalize_patch_slot_list(&next, PatchSlotDirection::Input)
+                    .iter()
+                    .map(patch_slot_value)
+                    .collect(),
+            ),
+        );
+        next.insert(
+            "outputs",
+            Value::Array(
+                normalize_patch_slot_list(&next, PatchSlotDirection::Output)
+                    .iter()
+                    .map(patch_slot_value)
+                    .collect(),
+            ),
+        );
+        next.insert(
+            "audio",
+            patch_audio_metadata_value(&normalize_patch_audio_metadata(&next)),
+        );
     }
 
     if matches!(next.kind, NodeKind::Output | NodeKind::Transport) {
@@ -900,6 +1184,13 @@ pub fn get_source_handle_ids(node: &PatchNode) -> BTreeSet<String> {
                 handle_ids.insert(id.to_string());
             }
         }
+        NodeKind::Patch => {
+            get_patch_slot_handle_ids(node, PatchSlotDirection::Output)
+                .into_iter()
+                .for_each(|id| {
+                    handle_ids.insert(id);
+                });
+        }
         kind if kind.is_input_like() => {
             for (index, param) in extract_param_entries(node).iter().enumerate() {
                 let param_id = param
@@ -981,6 +1272,13 @@ pub fn get_target_handle_ids(node: &PatchNode) -> BTreeSet<String> {
     }
     if node.kind == NodeKind::MidiCcOutput {
         handle_ids.insert("value".to_string());
+    }
+    if node.kind == NodeKind::Patch {
+        get_patch_slot_handle_ids(node, PatchSlotDirection::Input)
+            .into_iter()
+            .for_each(|id| {
+                handle_ids.insert(id);
+            });
     }
     for handle in MODULATION_TARGET_HANDLES {
         handle_ids.insert((*handle).to_string());

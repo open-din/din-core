@@ -171,6 +171,54 @@
       }
     },
     {
+      "id": "patch-1",
+      "type": "patch",
+      "position": { "x": 1040, "y": 180 },
+      "data": {
+        "type": "patch",
+        "label": "FX Chain",
+        "patchAsset": "/patches/fx-chain.patch.json",
+        "patchInline": null,
+        "patchName": "FX Chain",
+        "inputs": [
+          {
+            "id": "sidechain",
+            "label": "Sidechain",
+            "type": "audio"
+          },
+          {
+            "id": "clock",
+            "label": "Clock",
+            "type": "midi"
+          }
+        ],
+        "outputs": [
+          {
+            "id": "send",
+            "label": "Send",
+            "type": "audio"
+          },
+          {
+            "id": "notes",
+            "label": "Notes",
+            "type": "midi"
+          }
+        ],
+        "audio": {
+          "input": {
+            "id": "in",
+            "label": "Audio In",
+            "type": "audio"
+          },
+          "output": {
+            "id": "out",
+            "label": "Audio Out",
+            "type": "audio"
+          }
+        }
+      }
+    },
+    {
       "id": "output-1",
       "type": "output",
       "position": { "x": 1100, "y": 0 },
@@ -253,8 +301,29 @@
       "targetHandle": "in"
     },
     {
+      "id": "gain-patch-in",
+      "source": "gain-1",
+      "target": "patch-1",
+      "sourceHandle": "out",
+      "targetHandle": "in"
+    },
+    {
+      "id": "sampler-patch-sidechain",
+      "source": "sampler-1",
+      "target": "patch-1",
+      "sourceHandle": "out",
+      "targetHandle": "in:sidechain"
+    },
+    {
       "id": "gain-output",
       "source": "gain-1",
+      "target": "output-1",
+      "sourceHandle": "out",
+      "targetHandle": "in"
+    },
+    {
+      "id": "patch-output",
+      "source": "patch-1",
       "target": "output-1",
       "sourceHandle": "out",
       "targetHandle": "in"
@@ -271,6 +340,13 @@
       "source": "sampler-1",
       "target": "convolver-1",
       "sourceHandle": "out",
+      "targetHandle": "in"
+    },
+    {
+      "id": "patch-send-convolver",
+      "source": "patch-1",
+      "target": "convolver-1",
+      "sourceHandle": "out:send",
       "targetHandle": "in"
     },
     {

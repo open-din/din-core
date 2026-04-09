@@ -50,13 +50,25 @@ pub struct Engine {
 }
 
 impl Engine {
-    pub fn new(compiled: CompiledGraph, config: EngineConfig) -> Self {
+    pub fn new(compiled: CompiledGraph, config: EngineConfig) -> Result<Self, CoreError> {
+        if let Some(node) = compiled
+            .graph
+            .nodes
+            .iter()
+            .find(|node| node.kind == NodeKind::Patch)
+        {
+            return Err(CoreError::UnsupportedNativeNode {
+                node_id: node.id.clone(),
+                kind: node.kind.as_str().to_string(),
+            });
+        }
+
         let mut input_values = BTreeMap::new();
         for input in &compiled.graph.patch.interface.inputs {
             input_values.insert(input.key.clone(), input.default_value as f32);
         }
 
-        Self {
+        Ok(Self {
             compiled,
             config,
             input_values,
@@ -66,7 +78,7 @@ impl Engine {
             phases: BTreeMap::new(),
             midi_note_frequency: None,
             midi_gate: 0.0,
-        }
+        })
     }
 
     pub fn compiled_graph(&self) -> &CompiledGraph {

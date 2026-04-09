@@ -111,7 +111,7 @@ pub extern "C" fn din_engine_create(
                 channels,
                 block_size,
             },
-        );
+        )?;
         Ok(Box::into_raw(Box::new(DinEngineHandle { engine })) as *mut c_void)
     })
     .unwrap_or(ptr::null_mut())

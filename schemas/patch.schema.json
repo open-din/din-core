@@ -3,6 +3,7 @@
   "$id": "urn:react-din:patch-document:v1",
   "title": "react-din PatchDocument v1",
   "description": "Public exchange format for react-din playground patches.",
+  "$comment": "PatchDocument is the stable serialized graph contract published by @open-din/react.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -92,7 +93,8 @@
         "midiNoteOutput",
         "midiCCOutput",
         "midiSync",
-        "midiPlayer"
+        "midiPlayer",
+        "patch"
       ]
     },
     "position": {
@@ -111,6 +113,49 @@
         }
       }
     },
+    "slotType": {
+      "type": "string",
+      "enum": [
+        "audio",
+        "midi"
+      ]
+    },
+    "patchSlot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "type"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "label": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "type": {
+          "$ref": "#/$defs/slotType"
+        }
+      }
+    },
+    "patchAudioMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input",
+        "output"
+      ],
+      "properties": {
+        "input": {
+          "$ref": "#/$defs/patchSlot"
+        },
+        "output": {
+          "$ref": "#/$defs/patchSlot"
+        }
+      }
+    },
     "patchNodeData": {
       "type": "object",
       "required": [
@@ -122,6 +167,43 @@
         },
         "label": {
           "type": "string"
+        },
+        "patchAsset": {
+          "type": "string",
+          "description": "Asset path for a nested patch source. The contract accepts .patch.json and .din sources."
+        },
+        "patchInline": {
+          "anyOf": [
+            {
+              "$ref": "#"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Inline nested PatchDocument source. When both patchInline and patchAsset are present, patchInline wins."
+        },
+        "patchName": {
+          "type": "string",
+          "description": "Cached display name for the nested patch source."
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/patchSlot"
+          },
+          "description": "Cached boundary slot metadata for named patch inputs. Default audio in is implicit and not duplicated here."
+        },
+        "outputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/patchSlot"
+          },
+          "description": "Cached boundary slot metadata for named patch outputs. Default audio out is implicit and not duplicated here."
+        },
+        "audio": {
+          "$ref": "#/$defs/patchAudioMetadata",
+          "description": "Cached default audio metadata for the implicit in/out boundary slots."
         }
       },
       "additionalProperties": true

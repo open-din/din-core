@@ -14,10 +14,11 @@ pub use error::{PatchError, Result};
 pub use naming::{ensure_unique_name, reserved_identifiers, to_safe_identifier};
 pub use types::{
     AllLiteral, GraphConnectionLike, GraphDocumentLike, GraphNodeLike, MidiChannelSelector,
-    MidiTransportSyncMode, MidiValueFormat, NodeKind, NoteMode, PatchConnection, PatchDocument,
-    PatchEvent, PatchInput, PatchInterface, PatchMidiCcInput, PatchMidiCcOutput, PatchMidiInput,
-    PatchMidiNoteInput, PatchMidiNoteOutput, PatchMidiOutput, PatchMidiSyncOutput, PatchNode,
-    PatchNodeData, PatchPosition, PatchToGraphOptions,
+    MidiTransportSyncMode, MidiValueFormat, NodeKind, NoteMode, PatchAudioMetadata,
+    PatchConnection, PatchDocument, PatchEvent, PatchInput, PatchInterface, PatchMidiCcInput,
+    PatchMidiCcOutput, PatchMidiInput, PatchMidiNoteInput, PatchMidiNoteOutput, PatchMidiOutput,
+    PatchMidiSyncOutput, PatchNode, PatchNodeData, PatchPosition, PatchSlot, PatchToGraphOptions,
+    SlotType,
 };
 
 pub const PATCH_SCHEMA_JSON: &str = include_str!("../../../schemas/patch.schema.json");
