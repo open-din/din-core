@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "repo": {
+    "id": "din_core",
+    "display_name": "din-core",
+    "path": "din-core",
+    "role": "runtime",
+    "tags": [
+      "rust",
+      "runtime",
+      "compiler",
+      "registry",
+      "validation",
+      "migration",
+      "ffi",
+      "wasm"
+    ],
+    "depends_on": [
+      "react_din"
+    ],
+    "used_by": [
+      "din_studio",
+      "din_agents"
+    ],
+    "entry_points": [
+      "crates/din-patch",
+      "crates/din-core",
+      "schemas/patch.schema.json",
+      "fixtures/canonical_patch.json"
+    ],
+    "owned_contracts": [
+      "runtime semantics",
+      "registry authority",
+      "patch validation",
+      "ffi",
+      "wasm"
+    ],
+    "shared_contracts": [
+      "patch schema",
+      "serialization",
+      "persisted node ids",
+      "round-trip",
+      "registry"
+    ],
+    "hard_boundaries": [
+      "Do not fork the public schema away from react-din.",
+      "Keep FFI and WASM wrappers thin.",
+      "Do not move editor logic into Rust crates."
+    ],
+    "validation_commands": [
+      "cargo fmt --all --check",
+      "cargo clippy --workspace --all-targets -- -D warnings",
+      "cargo test --workspace"
+    ],
+    "summary_path": "project/SUMMARY.md",
+    "api_summary_path": "../docs/summaries/din-core-api.md",
+    "repo_manifest_path": "project/REPO_MANIFEST.json",
+    "skills_path": "project/skills",
+    "linked_manifests": []
+  }
+}

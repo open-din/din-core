@@ -1,5 +1,27 @@
 # din-core
 
+## PURPOSE
+
+Rust runtime, validation, migration, registry, and wrapper workspace for DIN patches.
+
+## ENTRY FILES
+
+- `project/SUMMARY.md`
+- `crates/din-patch`
+- `crates/din-core`
+- `schemas/patch.schema.json`
+
+## DO NOT TOUCH
+
+- Published TypeScript/React API or schema publishing -> `react-din`
+- Editor workflows, shell UX, MCP surfaces -> `din-studio`
+
+## RELATED REPOS
+
+- `react-din` owns the public schema
+- `din-studio` consumes shared IDs and contract-facing metadata
+- `din-agents` owns routing and quality gates
+
 `din-core` is a Rust-first native library workspace that mirrors the canonical `react-din` patch contract and prepares the runtime for reuse across native, C ABI, and WebAssembly targets.
 
 ## Outcome

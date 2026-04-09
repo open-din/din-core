@@ -1,23 +1,23 @@
-# Skill: registry-parity
+# SKILL: registry-parity
 
-## Triggers
+## REPO
 
-- Registry edits, new node variants, or parity test failures.
-- Prompts mentioning exact patch node IDs (for example `osc`, `stepSequencer`, `midiCC`).
+`din-core`
 
-## Workflow
+## WHEN TO USE
 
-1. Read `project/TEST_MATRIX.md` scenarios `F02-*`, `F04-S01`.
-2. Keep one authoritative registry consumed by compiler, docs, and tests—extend the same source the parity tests inspect.
-3. Preserve exact patch node string IDs; use PascalCase for generated Rust identifiers only where the codebase already maps IDs to types.
-4. Document non-trivial aliases in the registry as required by `AGENTS.md`.
+- Node registry, node IDs, or interface metadata changes
+- A request mentions registry parity with public contracts or studio metadata
 
-## Checks
+## STEPS
 
-- `cargo test -p din-core` (registry parity)
+1. Read the summary files, repo manifest, and `fixtures/canonical_patch.json`.
+2. Update registry logic in Rust first.
+3. Preserve persisted IDs and interface naming unless an explicit migration exists.
+4. Escalate only if shared IDs or public schema expectations change.
+
+## VALIDATION
+
+- `cargo fmt --all --check`
+- `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
-- `./scripts/generate-docs.sh` when registry docs or `pub` helpers consumed by consumers change
-
-## Expected outputs
-
-- Every supported node appears in parity coverage; IDs stay stable for `react-din` consumers.

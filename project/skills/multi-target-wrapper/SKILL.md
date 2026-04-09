@@ -1,24 +1,23 @@
-# Skill: multi-target-wrapper
+# SKILL: multi-target-wrapper
 
-## Triggers
+## REPO
 
-- Changes under `din-ffi` or `din-wasm`.
-- Exposing new engine or patch helpers across C ABI or WASM.
+`din-core`
 
-## Workflow
+## WHEN TO USE
 
-1. Read `project/TEST_MATRIX.md` scenarios `F03-*` and `project/features/03_multi_target_exports.feature.md`.
-2. Implement new behavior in `din-core` / `din-patch` first; keep wrappers as thin forwarding layers.
-3. Add integration tests in the FFI and WASM crates that reuse Rust-native structs and errors.
-4. Avoid widening exported surface area until native APIs are stable.
+- FFI or WASM bindings change
+- Native Rust behavior already moved and wrappers must follow
 
-## Checks
+## STEPS
 
-- `cargo test -p din-ffi`
-- `cargo test -p din-wasm`
+1. Read the repo summary, API summary, and repo manifest.
+2. Confirm the native Rust behavior exists in `din-patch` or `din-core`.
+3. Update `din-ffi` or `din-wasm` as thin adapters only.
+4. Avoid duplicating validation, migration, or runtime logic in wrappers.
+
+## VALIDATION
+
+- `cargo fmt --all --check`
+- `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
-- `./scripts/generate-docs.sh` after new `pub` exports on FFI/WASM surfaces
-
-## Expected outputs
-
-- Cross-target exports stay consistent; wrappers do not reimplement business logic.

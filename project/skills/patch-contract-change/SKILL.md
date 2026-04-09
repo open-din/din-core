@@ -1,24 +1,23 @@
-# Skill: patch-contract-change
+# SKILL: patch-contract-change
 
-## Triggers
+## REPO
 
-- Add or change a patch node kind, interface field, or migration behavior.
-- Prompts about round-trip preservation or `PatchDocument` compatibility with `react-din`.
+`din-core`
 
-## Workflow
+## WHEN TO USE
 
-1. Read `project/TEST_MATRIX.md` scenarios `F01-*` and `project/features/01_patch_contract.feature.md`.
-2. Update Rust logic in `din-patch` / `din-core` first; keep `din-ffi` and `din-wasm` thin adapters.
-3. Align with `schemas/patch.schema.json` and extend `fixtures/canonical_patch.json` when the public shape changes (coordinate a sibling `react-din` schema PR if it is the published copy).
-4. Add or update tests that prove round-trip and interface parity.
+- Patch validation, migration, or round-trip behavior changes
+- Public contract parity with `react-din` is in scope
 
-## Checks
+## STEPS
 
-- `cargo test -p din-patch`
+1. Read `project/SUMMARY.md`, `../docs/summaries/din-core-api.md`, and `project/REPO_MANIFEST.json`.
+2. Update `crates/din-patch` or `crates/din-core` first.
+3. Keep `schemas/patch.schema.json` and `fixtures/canonical_patch.json` aligned.
+4. Escalate to `react-din` for published schema or persisted ID changes.
+
+## VALIDATION
+
+- `cargo fmt --all --check`
+- `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
-- `cargo fmt --all --check` and `cargo clippy --workspace --all-targets -- -D warnings`
-- `./scripts/generate-docs.sh` after `din-patch` / `din-core` public API or crate docs change
-
-## Expected outputs
-
-- Patch behavior, fixtures, and docs references match; no silent drift from the node registry.

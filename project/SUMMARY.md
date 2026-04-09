@@ -1,10 +1,34 @@
-# Product Summary
+# SUMMARY
 
-`din-core` helps host applications import and run `react-din`-compatible native audio patch graphs from a single Rust library workspace that can be exported to C ABI and WebAssembly.
+## PURPOSE
 
-## Priority Features
+Rust runtime workspace for validating, migrating, compiling, and executing DIN patch graphs.
 
-1. Canonical `react-din` patch contract support with strict validation, migration, and round-trip preservation.
-2. Rust-native graph, registry, compiler, notes/data helpers, and runtime control surface.
-3. Thin multi-target exports for native embedding, C-compatible consumers, and WebAssembly model tooling.
-4. Documentation and tests that keep node coverage, naming, and interfaces aligned.
+## OWNS
+
+- Runtime semantics and graph compilation
+- Node registry authority
+- Patch validation and migration behavior
+- Thin FFI and WASM wrappers over native logic
+
+## DOES NOT OWN
+
+- Published TypeScript/React API and package exports
+- Editor workflows, shell UX, or MCP protocol surfaces
+- Workspace routing and automation
+
+## USE WHEN
+
+- The task changes runtime behavior, registry parity, patch validation, migration, or Rust wrappers.
+
+## DO NOT USE WHEN
+
+- The task is public API or schema publishing -> `react-din`
+- The task is editor or MCP work -> `din-studio`
+- The task is routing or control-plane work -> `din-agents`
+
+## RELATED REPOS
+
+- `react-din` owns the published patch schema
+- `din-studio` consumes runtime-aligned metadata and IDs
+- `din-agents` routes ownership and quality gates

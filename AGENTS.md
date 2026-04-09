@@ -1,181 +1,46 @@
-# AGENTS — din-core (HOT + HOOKS)
+# AGENTS — din-core
 
-## CORE RULE
-Load MINIMUM context. Use hooks. Do NOT load deep context unless required.
+## LOAD ORDER
 
----
+1. `AGENTS.md`
+2. `project/SUMMARY.md`
+3. `../docs/summaries/din-core-api.md`
+4. `project/REPO_MANIFEST.json`
+5. One matching file in `project/skills/`
 
-## 1. SCOPE
+## ROUTE HERE WHEN
 
-din-core owns:
+- The request changes runtime, compiler, registry, migration, validation, FFI, or WASM behavior.
+- The request changes canonical fixtures or Rust round-trip behavior.
 
-- patch runtime (Rust)
-- validation + migration
-- node registry (single source of truth)
-- compiler/runtime logic
-- FFI + WASM (thin wrappers)
+## ROUTE AWAY WHEN
 
-Must mirror react-din patch contract.
+- Public API, exports, docs/components, or published schema -> `react-din`
+- Editor, MCP, launcher, or shell work -> `din-studio`
+- Workspace routing or automation -> `din-agents`
 
----
+## ENTRY POINTS
 
-## 2. ROUTING (FIRST DECISION)
+- `crates/din-patch`
+- `crates/din-core`
+- `schemas/patch.schema.json`
+- `fixtures/canonical_patch.json`
 
-Map task → type:
+## SKILL MAP
 
-- "node / registry" → registry rules
-- "patch / schema" → contract rules
-- "runtime / compiler" → core logic
-- "FFI / WASM" → wrapper rules
+- Patch contract change -> `project/skills/patch-contract-change/SKILL.md`
+- Registry or node ID change -> `project/skills/registry-parity/SKILL.md`
+- FFI or WASM work -> `project/skills/multi-target-wrapper/SKILL.md`
+- Rust gates -> `project/skills/rust-quality-gates/SKILL.md`
 
-If unclear → choose smallest scope
+## HARD RULES
 
----
+- `react-din` owns the published schema; this repo owns runtime semantics and registry authority.
+- Persisted node IDs stay stable.
+- Keep FFI and WASM thin.
 
-## 3. HOOKS (MANDATORY)
+## VALIDATION
 
-### HOOK: REGISTRY_CHANGE
-IF task mentions node / registry:
-
-LOAD ONLY:
-- registry module
-- fixtures/canonical_patch.json
-
-REQUIRE:
-- registry parity tests updated
-- aliases documented
-
----
-
-### HOOK: SCHEMA_SYNC
-IF task mentions schema / patch:
-
-LOAD ONLY:
-- schemas/patch.schema.json
-- fixtures/canonical_patch.json
-
-REQUIRE:
-- match react-din contract
-- preserve compatibility
-
----
-
-### HOOK: RUNTIME_CHANGE
-IF task mentions runtime / compiler:
-
-LOAD ONLY:
-- relevant crate (din-core / din-patch)
-
-REQUIRE:
-- round-trip preserved
-- interface naming stable
-
----
-
-### HOOK: FFI_WASM
-IF task mentions FFI / WASM:
-
-LOAD ONLY:
-- crates/din-ffi OR crates/din-wasm
-
-REQUIRE:
-- thin wrapper only
-- reuse Rust-native logic
-
----
-
-### HOOK: DOCS
-IF missing info:
-
-LOAD (max 2):
-1. docs/summaries
-2. README / docs/**
-3. target/doc (rustdoc)
-
-STOP when sufficient
-
----
-
-### HOOK: CROSS_REPO
-IF mentions:
-API / JS / editor
-
-STOP → switch:
-
-- react-din (API)
-- din-studio (editor)
-
----
-
-## 4. HARD CONSTRAINTS
-
-- react-din = contract source of truth
-- NEVER change persisted node IDs
-- registry = single source of truth
-
----
-
-### MUST:
-
-- preserve round-trip patch behavior
-- preserve interface metadata
-- keep schema + fixtures aligned
-
----
-
-### NEVER:
-
-- duplicate logic in FFI/WASM
-- break contract with react-din
-- change IDs or serialization
-
----
-
-## 5. EXECUTION LOOP
-
-1. Detect hook
-2. Load ONLY required files
-3. Apply minimal change
-4. Validate
-
----
-
-## 6. CONTEXT LIMITS
-
-- max 1 repo
-- max 2 files
-- NEVER scan directories
-- NEVER load full rustdoc
-
-If enough → STOP
-
----
-
-## 7. SELF-OPTIMIZATION
-
-Continuously:
-
-- drop irrelevant context
-- ignore unrelated crates
-- reduce reads
-- prefer smallest change
-
-If context grows → compress
-
----
-
-## 8. LOAD DEEP CONTEXT ONLY IF
-
-- schema ambiguity
-- registry unclear
-- failing tests
-
----
-
-## 9. VALIDATION
-
-cargo fmt --all --check  
-cargo clippy --workspace --all-targets -- -D warnings  
-cargo test --workspace  
-
-(optional) cargo doc / generate-docs
+- `cargo fmt --all --check`
+- `cargo clippy --workspace --all-targets -- -D warnings`
+- `cargo test --workspace`

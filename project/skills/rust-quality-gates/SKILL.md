@@ -1,22 +1,23 @@
-# Skill: rust-quality-gates
+# SKILL: rust-quality-gates
 
-## Triggers
+## REPO
 
-- Any PR before merge, or CI failures on formatting, clippy, or tests.
+`din-core`
 
-## Workflow
+## WHEN TO USE
 
-1. Run `cargo fmt --all` locally if formatting fails; re-run with `--check`.
-2. Fix `cargo clippy --workspace --all-targets -- -D warnings` issues without silencing unless justified in review.
-3. Run `cargo test --workspace`; if a crate is intentionally scoped, document the exception in the PR.
+- You need the final validation pass for a Rust-side change
+- The request touches any runtime, registry, or wrapper surface
 
-## Checks
+## STEPS
+
+1. Read `project/REPO_MANIFEST.json` for the required commands.
+2. Verify ownership stayed inside `din-core` unless a shared contract changed.
+3. Run the Rust validation commands in repo order.
+4. Regenerate docs only if public Rust-facing surfaces changed.
+
+## VALIDATION
 
 - `cargo fmt --all --check`
 - `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
-- `./scripts/generate-docs.sh` when rustdoc-facing `pub` items changed (`docs/generated/` + `target/doc/` are gitignored)
-
-## Expected outputs
-
-- CI-green Rust workspace before merge.
