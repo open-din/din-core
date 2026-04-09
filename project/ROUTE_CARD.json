@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "repo": "din-core",
+  "role": "runtime",
+  "route_when": [
+    "runtime behavior",
+    "compiler",
+    "registry",
+    "validation",
+    "migration",
+    "FFI",
+    "WASM"
+  ],
+  "load_order": [
+    "project/ROUTE_CARD.json",
+    "project/skills/<matching-skill>/SKILL.md",
+    "exact crate module",
+    "exact regression test",
+    "fixtures/canonical_patch.json only when contract parity matters"
+  ],
+  "do_not_route": {
+    "react-din": [
+      "published schema",
+      "package exports",
+      "docs/components"
+    ],
+    "din-studio": [
+      "editor workflows",
+      "shell UX",
+      "MCP surfaces"
+    ],
+    "din-agents": [
+      "workspace routing",
+      "automation"
+    ]
+  },
+  "entry_points": [
+    "crates/din-core/src/engine.rs",
+    "crates/din-core/src/graph.rs",
+    "crates/din-core/src/registry.rs",
+    "crates/din-patch/src/document.rs",
+    "fixtures/canonical_patch.json"
+  ],
+  "task_slices": {
+    "runtime_bug": "crates/din-core/src/engine.rs",
+    "registry_parity": "crates/din-core/src/registry.rs",
+    "patch_contract": "crates/din-patch/src/document.rs"
+  },
+  "hard_boundaries": [
+    "react-din owns the published patch schema.",
+    "Persisted node ids stay stable.",
+    "Keep FFI and WASM wrappers thin."
+  ],
+  "shared_contract_escalation": [
+    "patch schema",
+    "serialization",
+    "persisted node ids",
+    "round-trip parity"
+  ],
+  "validation_commands": [
+    "cargo fmt --all --check",
+    "cargo clippy --workspace --all-targets -- -D warnings",
+    "cargo test --workspace"
+  ]
+}

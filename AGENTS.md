@@ -3,10 +3,10 @@
 ## LOAD ORDER
 
 1. `AGENTS.md`
-2. `project/SUMMARY.md`
-3. `../docs/summaries/din-core-api.md`
-4. `project/REPO_MANIFEST.json`
-5. One matching file in `project/skills/`
+2. `project/ROUTE_CARD.json`
+3. One matching file in `project/skills/`
+4. The exact crate module
+5. The exact regression test
 
 ## ROUTE HERE WHEN
 
@@ -21,10 +21,10 @@
 
 ## ENTRY POINTS
 
-- `crates/din-patch`
-- `crates/din-core`
-- `schemas/patch.schema.json`
-- `fixtures/canonical_patch.json`
+- `project/ROUTE_CARD.json`
+- `crates/din-core/src/engine.rs`
+- `crates/din-core/src/registry.rs`
+- `crates/din-patch/src/document.rs`
 
 ## SKILL MAP
 
@@ -37,6 +37,7 @@
 
 - `react-din` owns the published schema; this repo owns runtime semantics and registry authority.
 - Persisted node IDs stay stable.
+- Open `fixtures/canonical_patch.json` only when patch parity or round-trip behavior is in scope.
 - Keep FFI and WASM thin.
 
 ## VALIDATION

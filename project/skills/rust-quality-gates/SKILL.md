@@ -11,7 +11,7 @@
 
 ## STEPS
 
-1. Read `project/REPO_MANIFEST.json` for the required commands.
+1. Read `project/ROUTE_CARD.json` for the required commands and boundaries.
 2. Verify ownership stayed inside `din-core` unless a shared contract changed.
 3. Run the Rust validation commands in repo order.
 4. Regenerate docs only if public Rust-facing surfaces changed.

@@ -52,6 +52,7 @@
       "cargo clippy --workspace --all-targets -- -D warnings",
       "cargo test --workspace"
     ],
+    "route_card_path": "project/ROUTE_CARD.json",
     "summary_path": "project/SUMMARY.md",
     "api_summary_path": "../docs/summaries/din-core-api.md",
     "repo_manifest_path": "project/REPO_MANIFEST.json",

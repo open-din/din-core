@@ -6,10 +6,10 @@ Rust runtime, validation, migration, registry, and wrapper workspace for DIN pat
 
 ## ENTRY FILES
 
-- `project/SUMMARY.md`
-- `crates/din-patch`
-- `crates/din-core`
-- `schemas/patch.schema.json`
+- `project/ROUTE_CARD.json`
+- `crates/din-core/src/engine.rs`
+- `crates/din-core/src/registry.rs`
+- `crates/din-patch/src/document.rs`
 
 ## DO NOT TOUCH
 

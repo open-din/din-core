@@ -11,7 +11,7 @@
 
 ## STEPS
 
-1. Read `project/SUMMARY.md`, `../docs/summaries/din-core-api.md`, and `project/REPO_MANIFEST.json`.
+1. Read `project/ROUTE_CARD.json` and the matching `din-patch` module.
 2. Update `crates/din-patch` or `crates/din-core` first.
 3. Keep `schemas/patch.schema.json` and `fixtures/canonical_patch.json` aligned.
 4. Escalate to `react-din` for published schema or persisted ID changes.
