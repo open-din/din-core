@@ -1,3 +1,5 @@
+#![allow(missing_docs)]
+
 use din_core::{
     ClampMode, CompareOperation, CompiledGraph, Engine, EngineConfig, MathOperation, NodeKind,
     PatchImporter, midi_to_note, node_registry, note_to_freq, registry_entry,

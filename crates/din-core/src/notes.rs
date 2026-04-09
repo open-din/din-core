@@ -1,3 +1,6 @@
+//! Note-name parsing and Western / French conversions shared by tooling and tests.
+#![allow(missing_docs)]
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

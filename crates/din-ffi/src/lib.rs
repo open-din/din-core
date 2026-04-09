@@ -1,3 +1,6 @@
+//! Stable C ABI over patch validation, graph compilation, and the bundled engine.
+#![allow(missing_docs)] // Every export is a `din_*` symbol; keep docs on the primary Rust APIs in `din-core`.
+
 use din_core::{CompiledGraph, CoreError, Engine, EngineConfig, Graph, MidiMessage, PatchImporter};
 use std::ffi::{CStr, CString, c_char, c_void};
 use std::ptr;

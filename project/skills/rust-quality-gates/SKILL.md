@@ -15,6 +15,7 @@
 - `cargo fmt --all --check`
 - `cargo clippy --workspace --all-targets -- -D warnings`
 - `cargo test --workspace`
+- `./scripts/generate-docs.sh` when rustdoc-facing `pub` items changed (`docs/generated/` + `target/doc/` are gitignored)
 
 ## Expected outputs
 

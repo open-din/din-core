@@ -1,3 +1,6 @@
+//! Serde model for the public patch contract. Field semantics are defined in `schemas/patch.schema.json`.
+#![allow(missing_docs)] // Node kinds and slots mirror the schema 1:1; duplicating docs here risks drift.
+
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::BTreeMap;

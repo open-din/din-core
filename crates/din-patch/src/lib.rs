@@ -1,3 +1,7 @@
+//! Parse, validate, migrate, and introspect DIN [`PatchDocument`] JSON aligned with `react-din`.
+//!
+//! The canonical field-level description lives in `schemas/patch.schema.json` at the workspace root.
+
 mod document;
 mod error;
 mod naming;
@@ -21,4 +25,5 @@ pub use types::{
     SlotType,
 };
 
+/// Embedded copy of the public patch JSON Schema (`schemas/patch.schema.json`).
 pub const PATCH_SCHEMA_JSON: &str = include_str!("../../../schemas/patch.schema.json");

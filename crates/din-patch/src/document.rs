@@ -1,3 +1,5 @@
+//! Parse, validate, migrate, and convert between editor graphs and [`PatchDocument`] values.
+
 use crate::error::{PatchError, Result};
 use crate::naming::{ensure_unique_name, reserved_identifiers, to_safe_identifier};
 use crate::types::{
@@ -12,7 +14,9 @@ use serde_json::{Value, json};
 use std::collections::{BTreeMap, BTreeSet};
 use std::time::{SystemTime, UNIX_EPOCH};
 
+/// Current interchange version carried in every [`PatchDocument::version`](crate::PatchDocument).
 pub const PATCH_DOCUMENT_VERSION: u32 = 1;
+/// Prefix for dynamic input-parameter handles on `input` / `uiTokens` nodes.
 pub const PATCH_INPUT_HANDLE_PREFIX: &str = "param:";
 
 const MODULATION_TARGET_HANDLES: &[&str] = &[
@@ -73,20 +77,24 @@ enum PatchSlotDirection {
     Output,
 }
 
+/// Parses JSON, then runs [`migrate_patch_document`] so callers always see normalized data.
 pub fn parse_patch_document(json: &str) -> Result<PatchDocument> {
     let patch: PatchDocument = serde_json::from_str(json)?;
     migrate_patch_document(&patch)
 }
 
+/// Deserializes an editor-style graph snapshot without patch-level validation.
 pub fn parse_graph_document(json: &str) -> Result<GraphDocumentLike> {
     Ok(serde_json::from_str(json)?)
 }
 
+/// Ensures a document round-trips through migration without structural errors.
 pub fn validate_patch_document(patch: &PatchDocument) -> Result<()> {
     let _ = migrate_patch_document(patch)?;
     Ok(())
 }
 
+/// Builds a validated [`PatchDocument`] from loose editor graph JSON.
 pub fn graph_document_to_patch(graph: &GraphDocumentLike) -> Result<PatchDocument> {
     let raw_connections = if graph.connections.is_empty() {
         &graph.edges
@@ -131,6 +139,7 @@ pub fn graph_document_to_patch(graph: &GraphDocumentLike) -> Result<PatchDocumen
     })
 }
 
+/// Normalizes nodes, connections, and derived interface metadata in-place logically.
 pub fn migrate_patch_document(patch: &PatchDocument) -> Result<PatchDocument> {
     if patch.version != PATCH_DOCUMENT_VERSION {
         return Err(PatchError::UnsupportedVersion {
@@ -208,6 +217,7 @@ pub fn migrate_patch_document(patch: &PatchDocument) -> Result<PatchDocument> {
     })
 }
 
+/// Serializes a patch into an editor-friendly [`GraphDocumentLike`] with XYFlow metadata.
 pub fn patch_to_graph_document(
     patch: &PatchDocument,
     options: PatchToGraphOptions,
@@ -273,6 +283,7 @@ pub fn patch_to_graph_document(
     })
 }
 
+/// Joins a relative asset path with an optional root URL or directory prefix.
 pub fn resolve_patch_asset_path(
     asset_path: Option<&str>,
     asset_root: Option<&str>,
@@ -295,6 +306,7 @@ pub fn resolve_patch_asset_path(
     Some(format!("{normalized_root}{normalized_path}"))
 }
 
+/// Returns node ids that receive clock/transport from a `transport` node.
 pub fn get_transport_connections(
     connections: &[PatchConnection],
     node_by_id: &BTreeMap<String, &PatchNode>,
@@ -543,6 +555,7 @@ fn get_patch_slot_handle_ids(node: &PatchNode, direction: PatchSlotDirection) ->
     handle_ids
 }
 
+/// Heuristic used by UI styling: whether an edge behaves like a default audio route.
 pub fn is_audio_connection_like(
     connection: &PatchConnection,
     node_by_id: &BTreeMap<String, &PatchNode>,
@@ -1133,10 +1146,12 @@ fn extract_param_entries(node: &PatchNode) -> Vec<BTreeMap<String, Value>> {
         .collect()
 }
 
+/// Builds the canonical handle id (`param:<id>`) for dynamic input parameters.
 pub fn get_input_param_handle_id(param_id: &str) -> String {
     format!("{PATCH_INPUT_HANDLE_PREFIX}{param_id}")
 }
 
+/// Enumerates valid **source** (output) handles for `node` using kind-specific rules.
 pub fn get_source_handle_ids(node: &PatchNode) -> BTreeSet<String> {
     let mut handle_ids = BTreeSet::new();
 
@@ -1212,6 +1227,7 @@ pub fn get_source_handle_ids(node: &PatchNode) -> BTreeSet<String> {
     handle_ids
 }
 
+/// Enumerates valid **target** (input) handles for `node` using kind-specific rules.
 pub fn get_target_handle_ids(node: &PatchNode) -> BTreeSet<String> {
     let mut handle_ids = BTreeSet::new();
 

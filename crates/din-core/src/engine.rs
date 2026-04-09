@@ -1,3 +1,6 @@
+//! Conservative v1 audio engine: schedules native nodes and applies control inputs.
+#![allow(missing_docs)]
+
 use crate::notes::midi_to_freq;
 use crate::{CompiledGraph, CoreError};
 use din_patch::{NodeKind, PatchNode};

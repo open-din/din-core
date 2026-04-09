@@ -23,6 +23,7 @@ serde-wasm-bindgen = "0.6.5"
 
 [workspace.lints.rust]
 unsafe_op_in_unsafe_fn = "deny"
+missing_docs = "warn"
 
 [workspace.lints.clippy]
 dbg_macro = "deny"

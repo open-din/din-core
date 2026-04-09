@@ -17,6 +17,7 @@
 - `cargo test -p din-ffi`
 - `cargo test -p din-wasm`
 - `cargo test --workspace`
+- `./scripts/generate-docs.sh` after new `pub` exports on FFI/WASM surfaces
 
 ## Expected outputs
 

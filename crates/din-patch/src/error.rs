@@ -1,6 +1,8 @@
 use thiserror::Error;
 
+/// Recoverable validation or migration error for patch interchange JSON.
 #[derive(Debug, Error)]
+#[allow(missing_docs)] // Display text documents each variant.
 pub enum PatchError {
     #[error("failed to parse patch JSON: {0}")]
     Json(#[from] serde_json::Error),
@@ -40,4 +42,5 @@ pub enum PatchError {
     Invalid(String),
 }
 
+/// Convenient result alias for [`PatchError`].
 pub type Result<T> = core::result::Result<T, PatchError>;

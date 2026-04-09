@@ -1,3 +1,5 @@
+#![allow(missing_docs)]
+
 use din_wasm::{compile_patch_impl, migrate_patch_impl, patch_interface_impl, validate_patch_impl};
 
 const FIXTURE: &str = include_str!("../../../fixtures/canonical_patch.json");

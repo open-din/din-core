@@ -1,3 +1,6 @@
+//! Graph blueprint and compiled edge buckets used before audio render.
+#![allow(missing_docs)]
+
 use crate::registry::{NodeRegistryEntry, node_registry};
 use din_patch::{
     NodeKind, PatchConnection, PatchDocument, PatchInterface, PatchNode, get_transport_connections,

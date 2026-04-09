@@ -1,3 +1,5 @@
+//! Safe JavaScript identifiers for codegen and UI labels derived from patch metadata.
+
 use std::collections::BTreeSet;
 
 const RESERVED_IDENTIFIERS: &[&str] = &[
@@ -41,6 +43,7 @@ const RESERVED_IDENTIFIERS: &[&str] = &[
     "yield",
 ];
 
+/// Tokens that cannot be used bare when emitting JS/TS identifiers.
 pub fn reserved_identifiers() -> BTreeSet<String> {
     RESERVED_IDENTIFIERS
         .iter()
@@ -48,6 +51,7 @@ pub fn reserved_identifiers() -> BTreeSet<String> {
         .collect()
 }
 
+/// Normalizes arbitrary text to a camelCase-safe identifier, honoring optional extra reserved words.
 pub fn to_safe_identifier(
     value: &str,
     fallback: &str,
@@ -107,6 +111,7 @@ pub fn to_safe_identifier(
     candidate
 }
 
+/// Appends numeric suffixes (`base2`, `base3`, …) until the name is unused.
 pub fn ensure_unique_name(base: &str, used_names: &BTreeSet<String>) -> String {
     if !used_names.contains(base) {
         return base.to_string();

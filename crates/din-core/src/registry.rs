@@ -1,3 +1,6 @@
+//! Static registry mapping [`NodeKind`] values to React/editor symbol names (parity tests assert coverage).
+#![allow(missing_docs)]
+
 use din_patch::NodeKind;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

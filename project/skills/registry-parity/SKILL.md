@@ -16,6 +16,7 @@
 
 - `cargo test -p din-core` (registry parity)
 - `cargo test --workspace`
+- `./scripts/generate-docs.sh` when registry docs or `pub` helpers consumed by consumers change
 
 ## Expected outputs
 

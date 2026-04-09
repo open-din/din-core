@@ -1,3 +1,5 @@
+#![allow(missing_docs)]
+
 use din_patch::{
     PatchMidiInput, PatchMidiOutput, ensure_unique_name, get_source_handle_ids,
     get_target_handle_ids, graph_document_to_patch, parse_patch_document, patch_to_graph_document,

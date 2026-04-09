@@ -1,3 +1,5 @@
+#![allow(missing_docs)]
+
 use din_ffi::{
     din_engine_create, din_engine_destroy, din_engine_render, din_engine_set_input,
     din_engine_trigger_event, din_graph_create_from_patch_json, din_graph_destroy,

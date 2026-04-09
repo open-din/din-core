@@ -1,3 +1,6 @@
+//! WASM helpers for patch validation, migration, and light-weight compilation summaries.
+#![allow(missing_docs)] // Wasm-bindgen exports mirror `din_core` helpers.
+
 use din_core::{CompiledGraph, PatchExporter, PatchImporter, to_safe_identifier};
 use serde::Serialize;
 use wasm_bindgen::prelude::*;

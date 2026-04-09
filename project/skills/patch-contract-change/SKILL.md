@@ -17,6 +17,7 @@
 - `cargo test -p din-patch`
 - `cargo test --workspace`
 - `cargo fmt --all --check` and `cargo clippy --workspace --all-targets -- -D warnings`
+- `./scripts/generate-docs.sh` after `din-patch` / `din-core` public API or crate docs change
 
 ## Expected outputs
 

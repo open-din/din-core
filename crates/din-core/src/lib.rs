@@ -1,3 +1,5 @@
+//! Native graph model, runtime engine, and helpers for `react-din`-compatible patches.
+
 mod data;
 mod engine;
 mod graph;
@@ -29,7 +31,9 @@ pub use notes::{
 };
 pub use registry::{NodeRegistryEntry, node_registry, registry_entry, registry_has_all_node_kinds};
 
+/// Errors surfaced when importing patches or stepping the conservative v1 runtime.
 #[derive(Debug, Error)]
+#[allow(missing_docs)]
 pub enum CoreError {
     #[error(transparent)]
     Patch(#[from] PatchError),
@@ -43,33 +47,40 @@ pub enum CoreError {
     Serialization(#[from] serde_json::Error),
 }
 
+/// Convenience facade for parsing patch JSON into typed models.
 #[derive(Debug, Default, Clone, Copy)]
 pub struct PatchImporter;
 
 impl PatchImporter {
+    /// Parses and migrates a [`PatchDocument`] from UTF-8 JSON text.
     pub fn from_json(json: &str) -> Result<PatchDocument, CoreError> {
         Ok(parse_patch_document(json)?)
     }
 
+    /// Builds a [`Graph`] blueprint from an already validated document.
     pub fn graph_from_patch(patch: &PatchDocument) -> Result<Graph, CoreError> {
         Graph::from_patch(patch)
     }
 
+    /// Compiles routing metadata used by [`Engine`] for a patch.
     pub fn compiled_from_patch(patch: &PatchDocument) -> Result<CompiledGraph, CoreError> {
         CompiledGraph::from_patch(patch)
     }
 }
 
+/// Convenience facade for exporting normalized patch JSON or graphs.
 #[derive(Debug, Default, Clone, Copy)]
 pub struct PatchExporter;
 
 impl PatchExporter {
+    /// Pretty-prints a migrated [`PatchDocument`] as JSON text.
     pub fn to_json(patch: &PatchDocument) -> Result<String, CoreError> {
         Ok(serde_json::to_string_pretty(&migrate_patch_document(
             patch,
         )?)?)
     }
 
+    /// Converts loose editor graph JSON into a validated interchange document.
     pub fn graph_to_patch(graph: &GraphDocumentLike) -> Result<PatchDocument, CoreError> {
         Ok(graph_document_to_patch(graph)?)
     }

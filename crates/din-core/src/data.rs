@@ -1,3 +1,6 @@
+//! Scalar math/compare utilities backing native `math`, `compare`, `mix`, `clamp`, and `switch` nodes.
+#![allow(missing_docs)]
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
