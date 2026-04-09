@@ -1,83 +1,181 @@
-# AGENTS
+# AGENTS — din-core (HOT + HOOKS)
 
-Canonical contract for Codex, Claude, Cursor, and other agents. Product narratives live in `project/SUMMARY.md`, `project/USERFLOW.md`, and `project/TEST_MATRIX.md`—cite them; do not duplicate them here. Portable workflows: `project/skills/*/SKILL.md`.
+## CORE RULE
+Load MINIMUM context. Use hooks. Do NOT load deep context unless required.
 
-## Product rule
+---
 
-Keep `react-din` patch compatibility as the top external contract for this repository.
+## 1. SCOPE
 
-## Naming rule
+din-core owns:
 
-- Persist exact patch node IDs such as `osc`, `stepSequencer`, and `midiCC`.
-- Use PascalCase Rust variants and structs derived from those IDs.
-- Document every non-trivial alias in the node registry.
+- patch runtime (Rust)
+- validation + migration
+- node registry (single source of truth)
+- compiler/runtime logic
+- FFI + WASM (thin wrappers)
 
-## Implementation rule
+Must mirror react-din patch contract.
 
-- Prefer adding behavior behind `din-patch` and `din-core` before widening FFI or WASM.
-- Keep one authoritative node registry for compiler, docs, and tests.
-- Treat round-trip patch preservation and interface naming parity as release gates.
+---
 
-## Testing rule
+## 2. ROUTING (FIRST DECISION)
 
-- Every supported patch node type must appear in registry parity tests.
-- Patch migration and round-trip tests must preserve interface metadata and asset paths.
-- FFI and WASM wrappers should stay thin and reuse Rust-native logic.
+Map task → type:
 
-## Quality gates (pre-merge)
+- "node / registry" → registry rules
+- "patch / schema" → contract rules
+- "runtime / compiler" → core logic
+- "FFI / WASM" → wrapper rules
 
-Run from the repository root:
+If unclear → choose smallest scope
 
-1. `cargo fmt --all --check`
-2. `cargo clippy --workspace --all-targets -- -D warnings`
-3. `cargo test --workspace`
-4. `cargo doc --workspace --no-deps` or `./scripts/generate-docs.sh` — must succeed before merge when public Rust API, crate roots, or documented modules change; HTML under `target/doc/`, index stub under `docs/generated/` (gitignored).
+---
 
-Schema and fixtures that mirror the public patch contract: `schemas/patch.schema.json`, `fixtures/canonical_patch.json`.
+## 3. HOOKS (MANDATORY)
 
-## Documentation Strategy
+### HOOK: REGISTRY_CHANGE
+IF task mentions node / registry:
 
-- Prefer `README.md`, `docs/**` (when present), and local `target/doc/**` after `./scripts/generate-docs.sh` over scanning raw sources for API shape.
-- Load generated HTML rustdoc on demand; it is not default agent context.
+LOAD ONLY:
+- registry module
+- fixtures/canonical_patch.json
 
-## Documentation Rules
+REQUIRE:
+- registry parity tests updated
+- aliases documented
 
-- Crate roots and public helpers should carry `//!` / `///` docs; large schema-mirror types document linkage to `schemas/patch.schema.json` instead of duplicating field lists.
-- After changing public Rust API, run `./scripts/generate-docs.sh` and fix `missing_docs` warnings when practical.
+---
 
-## Documentation Access Order (CRITICAL)
+### HOOK: SCHEMA_SYNC
+IF task mentions schema / patch:
 
-Always follow this sequence when gathering context. Do not skip steps.
+LOAD ONLY:
+- schemas/patch.schema.json
+- fixtures/canonical_patch.json
 
-1. This `AGENTS.md` — ownership, rules, quality gates
-2. `README.md` and `docs/Architecture.md` — hand-written index; use workspace `docs/README.md` when routing the whole stack
-3. Workspace summary `../docs/summaries/din-core-api.md` (when using the `open-din` container) — compressed API overview
-4. `target/doc/` after `./scripts/generate-docs.sh` — reference only, narrow to the crate/page needed
-5. Source under `crates/` — last resort
+REQUIRE:
+- match react-din contract
+- preserve compatibility
 
-## Context Budget Rules
+---
 
-- Load at most two documentation files per step; close or stop using them before opening more
-- Load at most one repository’s context unless the task is explicitly cross-repo
-- Prefer summaries over rustdoc HTML dumps; prefer rustdoc over reading entire crate sources
-- Never bulk-load generated HTML — open only the specific pages needed
-- Minimize total loaded context at all times
+### HOOK: RUNTIME_CHANGE
+IF task mentions runtime / compiler:
 
-## Code Reading Policy
+LOAD ONLY:
+- relevant crate (din-core / din-patch)
 
-- Do **not** read source files when documentation answers the question
-- Exhaust summaries and targeted rustdoc before opening `crates/`
-- When source reading is required, scope to the exact module — do not scan entire directories
+REQUIRE:
+- round-trip preserved
+- interface naming stable
 
-## Documentation Ownership
+---
 
-- This repository owns `docs/`, this `AGENTS.md`, `target/doc/`, and `docs/generated/` output from the doc script
-- Workspace summaries (`open-din/docs/summaries/`) must stay consistent when public Rust API or crate boundaries change
-- A contract or registry change is incomplete until schema, fixtures, and the matching summary are updated when the surface changes
+### HOOK: FFI_WASM
+IF task mentions FFI / WASM:
 
-## Documentation Freshness
+LOAD ONLY:
+- crates/din-ffi OR crates/din-wasm
 
-- Regenerate docs after public API changes (`./scripts/generate-docs.sh` or `cargo doc --workspace --no-deps`)
-- Treat `target/doc/` and generated stubs as ephemeral local artifacts
-- After regeneration, decide whether `../docs/summaries/din-core-api.md` needs an update
-- Do not cite outdated documentation as authoritative
+REQUIRE:
+- thin wrapper only
+- reuse Rust-native logic
+
+---
+
+### HOOK: DOCS
+IF missing info:
+
+LOAD (max 2):
+1. docs/summaries
+2. README / docs/**
+3. target/doc (rustdoc)
+
+STOP when sufficient
+
+---
+
+### HOOK: CROSS_REPO
+IF mentions:
+API / JS / editor
+
+STOP → switch:
+
+- react-din (API)
+- din-studio (editor)
+
+---
+
+## 4. HARD CONSTRAINTS
+
+- react-din = contract source of truth
+- NEVER change persisted node IDs
+- registry = single source of truth
+
+---
+
+### MUST:
+
+- preserve round-trip patch behavior
+- preserve interface metadata
+- keep schema + fixtures aligned
+
+---
+
+### NEVER:
+
+- duplicate logic in FFI/WASM
+- break contract with react-din
+- change IDs or serialization
+
+---
+
+## 5. EXECUTION LOOP
+
+1. Detect hook
+2. Load ONLY required files
+3. Apply minimal change
+4. Validate
+
+---
+
+## 6. CONTEXT LIMITS
+
+- max 1 repo
+- max 2 files
+- NEVER scan directories
+- NEVER load full rustdoc
+
+If enough → STOP
+
+---
+
+## 7. SELF-OPTIMIZATION
+
+Continuously:
+
+- drop irrelevant context
+- ignore unrelated crates
+- reduce reads
+- prefer smallest change
+
+If context grows → compress
+
+---
+
+## 8. LOAD DEEP CONTEXT ONLY IF
+
+- schema ambiguity
+- registry unclear
+- failing tests
+
+---
+
+## 9. VALIDATION
+
+cargo fmt --all --check  
+cargo clippy --workspace --all-targets -- -D warnings  
+cargo test --workspace  
+
+(optional) cargo doc / generate-docs
