@@ -1,0 +1,19 @@
+# Rust / Cargo
+target/
+**/target/
+
+# Binary artifacts (often gitignored)
+*.wasm
+*.dylib
+*.so
+*.dll
+
+# Env (secrets)
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+.idea/
