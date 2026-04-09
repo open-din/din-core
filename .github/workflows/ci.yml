@@ -16,4 +16,8 @@ jobs:
       - run: cargo fmt --all --check
       - run: cargo clippy --workspace --all-targets -- -D warnings
       - run: cargo test --workspace
+      - name: Compile perf benchmarks
+        run: cargo bench -p din-core --bench engine_render --no-run
+      - name: Smoke perf bench (quick samples)
+        run: cargo bench -p din-core --bench engine_render -- --quick
       - run: cargo doc --workspace --no-deps

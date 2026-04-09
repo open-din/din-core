@@ -1182,7 +1182,7 @@ pub fn get_source_handle_ids(node: &PatchNode) -> BTreeSet<String> {
             handle_ids.insert("out".to_string());
         }
         NodeKind::Voice => {
-            for id in ["note", "gate", "velocity"] {
+            for id in ["trigger", "note", "gate", "velocity"] {
                 handle_ids.insert(id.to_string());
             }
         }
@@ -1233,6 +1233,9 @@ pub fn get_target_handle_ids(node: &PatchNode) -> BTreeSet<String> {
 
     if node.kind.is_audio_node() {
         handle_ids.insert("in".to_string());
+        // Runtime trigger/gate edges (orchestration) may target audio nodes directly.
+        handle_ids.insert("gate".to_string());
+        handle_ids.insert("trigger".to_string());
         if node.kind == NodeKind::MatrixMixer {
             let inputs = node.data.get_u64("inputs").unwrap_or(1).max(1);
             for index in 1..=inputs {

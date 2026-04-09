@@ -1,18 +1,25 @@
 //! Static registry mapping [`NodeKind`] values to React/editor symbol names (parity tests assert coverage).
-#![allow(missing_docs)]
 
 use din_patch::NodeKind;
 
+/// Cross-repo metadata row for one canonical [`NodeKind`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct NodeRegistryEntry {
+    /// Canonical patch node kind.
     pub kind: NodeKind,
+    /// Rust module-ish symbolic name.
     pub module_name: &'static str,
+    /// Rust-facing type symbol in docs/codegen.
     pub struct_name: &'static str,
+    /// Public React component/function alias.
     pub react_component: &'static str,
+    /// Editor/playground node symbol.
     pub playground_node: &'static str,
+    /// Optional mapping note when naming diverges across surfaces.
     pub alias_note: Option<&'static str>,
 }
 
+/// Static registry rows kept in parity with `NodeKind::ALL`.
 pub const NODE_REGISTRY: &[NodeRegistryEntry] = &[
     entry(NodeKind::Osc, "osc", "OscNode", "Osc", "OscNode", None),
     entry(NodeKind::Gain, "gain", "GainNode", "Gain", "GainNode", None),
@@ -355,18 +362,21 @@ pub const NODE_REGISTRY: &[NodeRegistryEntry] = &[
         "PatchNode",
         "Patch",
         "PatchNode",
-        Some("contract supported, native runtime v1 unsupported"),
+        Some("contract supported, native runtime v1 nested patch passthrough"),
     ),
 ];
 
+/// Returns the static node registry slice.
 pub fn node_registry() -> &'static [NodeRegistryEntry] {
     NODE_REGISTRY
 }
 
+/// Looks up one node registry row by [`NodeKind`].
 pub fn registry_entry(kind: NodeKind) -> Option<&'static NodeRegistryEntry> {
     NODE_REGISTRY.iter().find(|entry| entry.kind == kind)
 }
 
+/// Checks one-to-one coverage between registry rows and `NodeKind::ALL`.
 pub fn registry_has_all_node_kinds() -> bool {
     NodeKind::ALL
         .iter()

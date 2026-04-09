@@ -77,6 +77,11 @@ cargo fmt --all
 cargo clippy --workspace --all-targets
 ```
 
+## Rust tutorial
+
+- Step-by-step host integration guide: `docs/RustTutorial.md`
+- TypeScript/WASM usage guide: `docs/TypeScriptTutorial.md`
+
 ## Runtime status
 
 The runtime engine included here is intentionally conservative in v1: it compiles and classifies the full `react-din` patch surface, exposes control and MIDI entry points, and renders a deterministic audio buffer with lightweight processor behavior for the implemented core node set. Nested `patch` nodes are mirrored at the contract, schema, migration, and registry layers, but native execution still fails fast for them in v1 with an explicit unsupported-node error. The registry and compiler are designed so richer DSP can be added without breaking the public patch contract.

@@ -1,43 +1,78 @@
 //! Note-name parsing and Western / French conversions shared by tooling and tests.
-#![allow(missing_docs)]
 
 use serde::{Deserialize, Serialize};
 
+/// Canonical Western chromatic pitch classes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum NoteName {
+    /// C natural.
     C,
+    /// C sharp.
     Cs,
+    /// D natural.
     D,
+    /// D sharp.
     Ds,
+    /// E natural.
     E,
+    /// F natural.
     F,
+    /// F sharp.
     Fs,
+    /// G natural.
     G,
+    /// G sharp.
     Gs,
+    /// A natural.
     A,
+    /// A sharp.
     As,
+    /// B natural.
     B,
 }
 
+/// Canonical French/solfege note classes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum FrenchNoteName {
+    /// Do.
     Do,
+    /// Re.
     Re,
+    /// Mi.
     Mi,
+    /// Fa.
     Fa,
+    /// Sol.
     Sol,
+    /// La.
     La,
+    /// Si.
     Si,
 }
 
+/// Parsed note descriptor with normalized naming and pitch values.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ParsedNote {
+    /// Normalized note name (`C`, `Db`, `F#`, ...).
     pub note: String,
+    /// Parsed octave index.
     pub octave: i8,
+    /// MIDI note number in `[0, 127]`.
     pub midi: u8,
+    /// Frequency in hertz.
     pub frequency: f64,
 }
 
+/// Parses note strings like `A4`, `Db3`, or `Sol-1`.
+///
+/// # Examples
+///
+/// ```
+/// use din_core::parse_note;
+///
+/// let parsed = parse_note("A4").expect("A4 should parse");
+/// assert_eq!(parsed.midi, 69);
+/// ```
 pub fn parse_note(input: &str) -> Option<ParsedNote> {
     let trimmed = input.trim();
     if trimmed.is_empty() {
@@ -60,10 +95,14 @@ pub fn parse_note(input: &str) -> Option<ParsedNote> {
     })
 }
 
+/// Converts a note string to MIDI note number.
 pub fn note_to_midi(input: &str) -> Option<u8> {
     parse_note(input).map(|parsed| parsed.midi)
 }
 
+/// Converts a MIDI note number to a note string like `C4`.
+///
+/// Set `prefer_flats` to use flat spellings (`Db`) over sharps (`C#`).
 pub fn midi_to_note(midi: u8, prefer_flats: bool) -> String {
     let note_names_sharp = [
         "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B",
@@ -81,14 +120,25 @@ pub fn midi_to_note(midi: u8, prefer_flats: bool) -> String {
     format!("{note}{octave}")
 }
 
+/// Converts a MIDI note number to frequency in hertz (A4 = 440 Hz).
+///
+/// # Examples
+///
+/// ```
+/// use din_core::midi_to_freq;
+///
+/// assert!((midi_to_freq(69) - 440.0).abs() < f64::EPSILON);
+/// ```
 pub fn midi_to_freq(midi: u8) -> f64 {
     440.0 * 2.0f64.powf((f64::from(midi) - 69.0) / 12.0)
 }
 
+/// Converts a note string directly to frequency in hertz.
 pub fn note_to_freq(input: &str) -> Option<f64> {
     note_to_midi(input).map(midi_to_freq)
 }
 
+/// Converts a Western note name to French spelling.
 pub fn note_to_french(input: &str) -> Option<String> {
     let normalized = normalize_note_name(input)?;
     let french = match normalized.as_str() {
@@ -114,6 +164,7 @@ pub fn note_to_french(input: &str) -> Option<String> {
     Some(french.to_string())
 }
 
+/// Converts a French note spelling to normalized Western spelling.
 pub fn note_from_french(input: &str) -> Option<String> {
     normalize_note_name(input)
 }

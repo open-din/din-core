@@ -1,4 +1,4 @@
-#![allow(missing_docs)]
+//! FFI integration tests for graph and engine C ABI behavior.
 
 use din_ffi::{
     din_engine_create, din_engine_destroy, din_engine_render, din_engine_set_input,
@@ -109,7 +109,7 @@ fn ffi_can_validate_create_and_render() {
 }
 
 #[test]
-fn ffi_engine_create_fails_fast_for_patch_nodes() {
+fn ffi_engine_create_supports_patch_nodes_with_scaffolding() {
     let json = CString::new(FIXTURE).expect("fixture should convert to CString");
     let mut error = ptr::null_mut();
 
@@ -119,19 +119,25 @@ fn ffi_engine_create_fails_fast_for_patch_nodes() {
 
     let engine = din_engine_create(graph, 48_000.0, 2, 64, &mut error);
     assert!(
-        engine.is_null(),
-        "engine creation should fail for patch nodes"
+        !engine.is_null(),
+        "engine creation should succeed for patch nodes with scaffolding"
     );
-    assert!(!error.is_null(), "engine creation should return an error");
-
-    let error_message = unsafe { CStr::from_ptr(error).to_string_lossy().into_owned() };
-    assert_eq!(
-        error_message,
-        "native runtime v1 does not support patch node \"patch-1\" (type \"patch\")"
+    assert!(
+        error.is_null(),
+        "engine creation should not return an error"
     );
 
-    unsafe {
-        din_string_free(error);
-    }
+    let mut buffer = vec![0.0f32; 128];
+    assert!(din_engine_render(
+        engine,
+        buffer.as_mut_ptr(),
+        buffer.len(),
+        &mut error
+    ));
+    assert!(error.is_null(), "render should not return an error");
+    assert!(buffer.iter().all(|sample| sample.is_finite()));
+    assert!(buffer.iter().any(|sample| sample.abs() > 0.000_1));
+
+    din_engine_destroy(engine);
     din_graph_destroy(graph);
 }

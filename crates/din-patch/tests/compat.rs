@@ -219,3 +219,19 @@ fn patch_node_does_not_leak_inline_interface_handles() {
             .contains("unsupported source handle \"out:leak\"")
     );
 }
+
+#[test]
+fn voice_source_handles_include_trigger_output() {
+    let patch = parse_patch_document(FIXTURE).expect("fixture should parse");
+    let voice_node = patch
+        .nodes
+        .iter()
+        .find(|node| node.id == "voice-1")
+        .expect("voice node should exist");
+
+    let source_handles = get_source_handle_ids(voice_node);
+    assert!(source_handles.contains("trigger"));
+    assert!(source_handles.contains("note"));
+    assert!(source_handles.contains("gate"));
+    assert!(source_handles.contains("velocity"));
+}

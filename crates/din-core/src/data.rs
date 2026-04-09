@@ -1,68 +1,130 @@
 //! Scalar math/compare utilities backing native `math`, `compare`, `mix`, `clamp`, and `switch` nodes.
-#![allow(missing_docs)]
 
 use serde::{Deserialize, Serialize};
 
+/// Scalar operations supported by the runtime `math` node.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum MathOperation {
+    /// Returns `a + b`.
     Add,
+    /// Returns `a - b`.
     Subtract,
+    /// Returns `a * b`.
     Multiply,
+    /// Returns `a / b`, or `0.0` when `b == 0.0`.
     Divide,
+    /// Returns fused multiply-add: `a * b + c`.
     MultiplyAdd,
+    /// Returns `a.powf(b)`.
     Power,
+    /// Returns logarithm of `a` in base `b`.
     Logarithm,
+    /// Returns square root of `a` after clamping to non-negative.
     Sqrt,
+    /// Returns inverse square root of `a`.
     InvSqrt,
+    /// Returns absolute value of `a`.
     Abs,
+    /// Returns `exp(a)`.
     Exp,
+    /// Returns `min(a, b)`.
     Min,
+    /// Returns `max(a, b)`.
     Max,
+    /// Returns `1.0` when `a < b`, otherwise `0.0`.
     LessThan,
+    /// Returns `1.0` when `a > b`, otherwise `0.0`.
     GreaterThan,
+    /// Returns sign of `a`.
     Sign,
+    /// Returns sign of `a - b`.
     Compare,
+    /// Returns smooth minimum of `a` and `b` controlled by `c`.
     SmoothMin,
+    /// Returns smooth maximum of `a` and `b` controlled by `c`.
     SmoothMax,
+    /// Rounds to nearest integer.
     Round,
+    /// Rounds down.
     Floor,
+    /// Rounds up.
     Ceil,
+    /// Truncates fractional component.
     Truncate,
+    /// Returns fractional component.
     Fraction,
+    /// Returns truncating modulo (`a % b`).
     TruncModulo,
+    /// Returns positive modulo in `[0, b)`.
     FloorModulo,
+    /// Wraps `a` in range `[b, c)`.
     Wrap,
+    /// Quantizes `a` to a `b` step size.
     Snap,
+    /// Triangle-wave fold in `[0, b]`.
     PingPong,
+    /// Returns `sin(a)`.
     Sin,
+    /// Returns `cos(a)`.
     Cos,
+    /// Returns `tan(a)`.
     Tan,
+    /// Returns `asin(a)` with domain clamp.
     Asin,
+    /// Returns `acos(a)` with domain clamp.
     Acos,
+    /// Returns `atan(a)`.
     Atan,
+    /// Returns `atan2(a, b)`.
     Atan2,
+    /// Returns `sinh(a)`.
     Sinh,
+    /// Returns `cosh(a)`.
     Cosh,
+    /// Returns `tanh(a)`.
     Tanh,
 }
 
+/// Comparison operations for the runtime `compare` node.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum CompareOperation {
+    /// Returns `a == b`.
     Equal,
+    /// Returns `a != b`.
     NotEqual,
+    /// Returns `a < b`.
     LessThan,
+    /// Returns `a <= b`.
     LessThanOrEqual,
+    /// Returns `a > b`.
     GreaterThan,
+    /// Returns `a >= b`.
     GreaterThanOrEqual,
 }
 
+/// Boundary behavior used by the runtime `clamp` node.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ClampMode {
+    /// Hard clamp into `[min, max]`.
     Clamp,
+    /// Periodic wrap into `[min, max)`.
     Wrap,
+    /// Reflect/fold at the edges.
     Fold,
 }
 
+/// Executes a scalar operation against up to three operands.
+///
+/// `c` is used by a subset of operations (for example `MultiplyAdd`, smoothing, and wrapping).
+///
+/// # Examples
+///
+/// ```
+/// use din_core::{MathOperation, math};
+///
+/// assert_eq!(math(MathOperation::Add, 2.0, 3.0, 0.0), 5.0);
+/// assert_eq!(math(MathOperation::MultiplyAdd, 2.0, 3.0, 4.0), 10.0);
+/// ```
 pub fn math(operation: MathOperation, a: f32, b: f32, c: f32) -> f32 {
     match operation {
         MathOperation::Add => a + b,
@@ -140,6 +202,7 @@ pub fn math(operation: MathOperation, a: f32, b: f32, c: f32) -> f32 {
     }
 }
 
+/// Executes a boolean comparison operation.
 pub fn compare(operation: CompareOperation, a: f32, b: f32) -> bool {
     match operation {
         CompareOperation::Equal => a == b,
@@ -151,11 +214,26 @@ pub fn compare(operation: CompareOperation, a: f32, b: f32) -> bool {
     }
 }
 
+/// Linear interpolation from `a` to `b` using factor `t`.
+///
+/// When `clamp_t` is `true`, `t` is constrained to `[0.0, 1.0]`.
+///
+/// # Examples
+///
+/// ```
+/// use din_core::mix;
+///
+/// assert_eq!(mix(0.0, 10.0, 0.25, true), 2.5);
+/// assert_eq!(mix(0.0, 10.0, 2.0, true), 10.0);
+/// ```
 pub fn mix(a: f32, b: f32, t: f32, clamp_t: bool) -> f32 {
     let t = if clamp_t { t.clamp(0.0, 1.0) } else { t };
     a + (b - a) * t
 }
 
+/// Applies clamp/wrap/fold behavior for a value range.
+///
+/// Returns the input unchanged when `min > max`.
 pub fn clamp(value: f32, min: f32, max: f32, mode: ClampMode) -> f32 {
     if min > max {
         return value;
@@ -182,6 +260,9 @@ pub fn clamp(value: f32, min: f32, max: f32, mode: ClampMode) -> f32 {
     }
 }
 
+/// Selects one value by index from an input slice.
+///
+/// Returns `0.0` when the index is out of range.
 pub fn switch_value(index: usize, inputs: &[f32]) -> f32 {
     inputs.get(index).copied().unwrap_or(0.0)
 }
