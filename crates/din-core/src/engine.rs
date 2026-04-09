@@ -209,6 +209,108 @@ impl Engine {
                 (*phase * 2.0 - 1.0) * 0.1
             }
             NodeKind::ConstantSource => self.resolve_numeric(node, &["offset"], 0.0),
+            NodeKind::Filter => {
+                let cutoff = self.resolve_numeric(node, &["frequency"], 1000.0);
+                let sr = self.config.sample_rate.max(1.0);
+                let a = (-TAU * cutoff / sr).exp();
+                // Generate white noise as v1 source input
+                let noise_key = format!("{}_noise", node.id);
+                let noise_phase = self.phases.entry(noise_key).or_insert(0.1234);
+                *noise_phase = (*noise_phase * 1.618_034 + 0.137).fract();
+                let input = (*noise_phase * 2.0 - 1.0) * 0.1;
+                let state_key = format!("{}_state", node.id);
+                let state = self.phases.entry(state_key).or_insert(0.0);
+                *state = (1.0 - a) * input + a * *state;
+                *state
+            }
+            NodeKind::Delay => {
+                let delay_time = self.resolve_numeric(node, &["delayTime"], 0.5).max(0.0001);
+                let sr = self.config.sample_rate.max(1.0);
+                let phase_key = format!("{}_delay", node.id);
+                let phase = self.phases.entry(phase_key).or_insert(0.0);
+                let value = ((*phase) * TAU).sin() * 0.05;
+                *phase += 1.0 / (delay_time * sr);
+                if *phase > 1.0 {
+                    *phase -= 1.0;
+                }
+                value
+            }
+            NodeKind::Reverb => {
+                let room_size = self.resolve_numeric(node, &["roomSize"], 0.8);
+                let wet = self.resolve_numeric(node, &["wet"], 0.5);
+                let phase_key = format!("{}_reverb", node.id);
+                let phase = self.phases.entry(phase_key).or_insert(0.0);
+                let value = phase.sin() * room_size * wet * 0.1;
+                *phase += 0.0001;
+                value
+            }
+            NodeKind::Compressor => self.midi_gate * 0.1,
+            NodeKind::Distortion => {
+                let amount = self.resolve_numeric(node, &["distortion"], 50.0);
+                let noise_key = format!("{}_dnoise", node.id);
+                let noise_phase = self.phases.entry(noise_key).or_insert(0.5678);
+                *noise_phase = (*noise_phase * 1.618_034 + 0.137).fract();
+                let input = (*noise_phase * 2.0 - 1.0) * 0.1;
+                (input * amount / 100.0 * 10.0).tanh() * 0.1
+            }
+            NodeKind::Chorus => {
+                let rate = self.resolve_numeric(node, &["rate"], 0.5);
+                let depth = self.resolve_numeric(node, &["depth"], 0.5);
+                let wet = self.resolve_numeric(node, &["wet"], 0.5);
+                let phase_key = format!("{}_chorus", node.id);
+                let phase = self.phases.entry(phase_key).or_insert(0.0);
+                let value = phase.sin() * depth * wet * 0.1;
+                *phase += rate * std::f32::consts::TAU / self.config.sample_rate.max(1.0);
+                if *phase > std::f32::consts::TAU {
+                    *phase -= std::f32::consts::TAU;
+                }
+                value
+            }
+            NodeKind::WaveShaper => {
+                let amount = self.resolve_numeric(node, &["amount"], 50.0);
+                let phase_key = format!("{}_ws", node.id);
+                let phase = self.phases.entry(phase_key).or_insert(0.1234);
+                *phase = (*phase * 1.618_034 + 0.137).fract();
+                let x = *phase * 2.0 - 1.0;
+                (x * 3.0 - x.powi(3)) / 2.0 * (amount / 100.0) * 0.1
+            }
+            NodeKind::Adsr => {
+                let sustain = self.resolve_numeric(node, &["sustain"], 0.7);
+                if self.midi_gate > 0.0 {
+                    self.midi_gate * sustain * 0.5
+                } else {
+                    0.0
+                }
+            }
+            NodeKind::Sampler => {
+                if self.midi_gate > 0.0 {
+                    self.midi_gate * 0.1
+                } else {
+                    0.0
+                }
+            }
+            NodeKind::MediaStream => 0.0,
+            NodeKind::Convolver => {
+                let wet = self.resolve_numeric(node, &["wet"], 0.5);
+                let phase = self.phases.entry(node.id.clone()).or_insert(0.1234);
+                *phase = (*phase * 1.618_034 + 0.137).fract();
+                (*phase * 2.0 - 1.0) * wet * 0.01
+            }
+            NodeKind::Gain | NodeKind::Output | NodeKind::Mixer => 0.0,
+            NodeKind::Analyzer => 0.0,
+            NodeKind::Panner => 0.0,
+            NodeKind::Lfo => {
+                let frequency = self.resolve_numeric(node, &["frequency"], 1.0);
+                let amplitude = self.resolve_numeric(node, &["amplitude"], 1.0);
+                let phase_key = format!("{}_lfo", node.id);
+                let phase = self.phases.entry(phase_key).or_insert(0.0);
+                let value = phase.sin() * amplitude * 0.1;
+                *phase += frequency * std::f32::consts::TAU / self.config.sample_rate.max(1.0);
+                if *phase > std::f32::consts::TAU {
+                    *phase -= std::f32::consts::TAU;
+                }
+                value
+            }
             _ => 0.0,
         }
     }
