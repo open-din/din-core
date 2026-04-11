@@ -351,7 +351,8 @@ fn wasm_audio_runtime_applies_midi_frame_offsets_in_block() {
                 "data": {
                     "type": "osc",
                     "kind": "osc",
-                    "frequency": 440.0
+                    "frequency": 440.0,
+                    "useGlobalMidiGate": true
                 }
             },
             {

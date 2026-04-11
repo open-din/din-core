@@ -394,7 +394,8 @@ impl Engine {
                 if *phase > TAU {
                     *phase -= TAU;
                 }
-                let use_global_midi_gate = node.data.get_bool("useGlobalMidiGate").unwrap_or(true);
+                // Match React `Osc` default (`useGlobalMidiGate={false}`): continuous output unless the patch opts in.
+                let use_global_midi_gate = node.data.get_bool("useGlobalMidiGate").unwrap_or(false);
                 let amp = if use_global_midi_gate {
                     if self.midi_mode_active {
                         self.midi_gate.max(0.0)
@@ -759,12 +760,19 @@ impl Engine {
 
     fn resolve_numeric(&mut self, node: &PatchNode, keys: &[&str], fallback: f32) -> f32 {
         for key in keys {
+            let compound_key = format!("{}:{}", node.id, key);
+            let gate_like = matches!(*key, "gate" | "trigger");
+            // Host/worklet live updates (`setNodeParam`) must win over compiled trigger/control edges,
+            // otherwise e.g. `Transport → gate` at 0 blocks per-step voice gating from the React sequencer.
+            if gate_like && let Some(&value) = self.node_param_overrides.get(&compound_key) {
+                return value;
+            }
+
             if let Some(value) = self.resolve_numeric_from_connections(node, key) {
                 return value;
             }
 
-            let compound_key = format!("{}:{}", node.id, key);
-            if let Some(&value) = self.node_param_overrides.get(&compound_key) {
+            if !gate_like && let Some(&value) = self.node_param_overrides.get(&compound_key) {
                 return value;
             }
 
