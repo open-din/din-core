@@ -332,6 +332,27 @@ impl Engine {
         }
     }
 
+    /// Web Audio–style periodic waveforms; `waveform` matches react-din `WAVEFORM_INDEX` (0–3).
+    fn oscillator_waveform_sample(phase: f32, waveform: i32) -> f32 {
+        let p = (phase % TAU + TAU) % TAU;
+        let pi = std::f32::consts::PI;
+        match waveform {
+            1 => {
+                let s = p.sin();
+                if s >= 0.0 { 1.0 } else { -1.0 }
+            }
+            2 => 2.0 * (p / TAU) - 1.0,
+            3 => {
+                if p < pi {
+                    -1.0 + (2.0 / pi) * p
+                } else {
+                    3.0 - (2.0 / pi) * p
+                }
+            }
+            _ => p.sin(),
+        }
+    }
+
     fn render_graph_node_sample(&mut self, node_idx: usize, frame_tok: u32) -> f32 {
         if self.render_sample_stamps[node_idx] == frame_tok {
             return self.render_sample_values[node_idx];
@@ -359,21 +380,31 @@ impl Engine {
     fn render_node_sample(&mut self, node: &PatchNode, input_sample: f32) -> f32 {
         match node.kind {
             NodeKind::Osc => {
-                let frequency = self
-                    .midi_note_frequency
-                    .unwrap_or_else(|| self.resolve_numeric(node, &["frequency"], 440.0));
+                let follow_midi_note = node.data.get_bool("followMidiNote").unwrap_or(false);
+                let frequency = if follow_midi_note {
+                    self.midi_note_frequency
+                        .unwrap_or_else(|| self.resolve_numeric(node, &["frequency"], 440.0))
+                } else {
+                    self.resolve_numeric(node, &["frequency"], 440.0)
+                };
+                let wf = self.resolve_numeric(node, &["waveform"], 0.0).round() as i32;
                 let phase = self.phases.entry(node.id.clone()).or_insert(0.0);
-                let value = phase.sin();
+                let value = Self::oscillator_waveform_sample(*phase, wf);
                 *phase += TAU * frequency / self.config.sample_rate.max(1.0);
                 if *phase > TAU {
                     *phase -= TAU;
                 }
-                let gate = if self.midi_mode_active {
-                    self.midi_gate.max(0.0)
+                let use_global_midi_gate = node.data.get_bool("useGlobalMidiGate").unwrap_or(true);
+                let amp = if use_global_midi_gate {
+                    if self.midi_mode_active {
+                        self.midi_gate.max(0.0)
+                    } else {
+                        1.0
+                    }
                 } else {
                     1.0
                 };
-                value * gate
+                value * amp
             }
             NodeKind::Noise | NodeKind::NoiseBurst => {
                 if input_sample.abs() > 0.000_001 {
@@ -385,7 +416,9 @@ impl Engine {
             }
             NodeKind::ConstantSource => self.resolve_numeric(node, &["offset"], 0.0),
             NodeKind::Filter => {
-                let cutoff = self.resolve_numeric(node, &["frequency"], 1000.0);
+                let cutoff = self
+                    .resolve_param_base_plus_lfo_only(node, &["frequency"], 1000.0, "frequency")
+                    .clamp(40.0, 20_000.0);
                 let sr = self.config.sample_rate.max(1.0);
                 let a = (-TAU * cutoff / sr).exp();
                 let input = if input_sample.abs() > 0.000_001 {
@@ -525,9 +558,15 @@ impl Engine {
             }
             NodeKind::Adsr => {
                 let sustain = self.resolve_numeric(node, &["sustain"], 0.7);
-                let gate = self.resolve_numeric(node, &["gate"], self.midi_gate);
-                if gate > 0.0 {
+                let gate = self.resolve_numeric(node, &["gate", "trigger"], self.midi_gate);
+                let env = if gate > 0.0 {
                     gate * sustain * 0.5
+                } else {
+                    0.0
+                };
+                // Envelope as VCA on upstream audio (osc → gain → adsr → out).
+                if input_sample.abs() > 0.000_001 {
+                    input_sample * env
                 } else {
                     0.0
                 }
@@ -565,9 +604,11 @@ impl Engine {
                 input_sample * gain.clamp(0.0, 2.0)
             }
             NodeKind::Gain | NodeKind::Mixer => {
-                let gain = self.resolve_numeric(node, &["gain", "masterGain"], 1.0);
+                let gain = self
+                    .resolve_param_base_plus_lfo_only(node, &["gain", "masterGain"], 1.0, "gain")
+                    .clamp(0.0, 4.0);
                 let gate_mul = self.resolve_numeric(node, &["gate", "trigger"], 1.0);
-                let combined = gain.clamp(0.0, 2.0) * gate_mul.clamp(0.0, 1.0);
+                let combined = gain * gate_mul.clamp(0.0, 1.0);
                 if input_sample.abs() > 0.000_001 {
                     input_sample * combined
                 } else {
@@ -627,23 +668,96 @@ impl Engine {
                 let scale = (1.0 / rows.sqrt()).clamp(0.25, 1.0);
                 self.seeded_noise(node, "matrix_mix_in", 0.811) * scale * 0.08
             }
-            NodeKind::Lfo => {
-                let frequency = self.resolve_numeric(node, &["frequency"], 1.0);
-                let amplitude = self.resolve_numeric(node, &["amplitude"], 1.0);
-                let phase_key = format!("{}_lfo", node.id);
-                let phase = self.phases.entry(phase_key).or_insert(0.0);
-                let value = phase.sin() * amplitude * 0.1;
-                *phase += frequency * std::f32::consts::TAU / self.config.sample_rate.max(1.0);
-                if *phase > std::f32::consts::TAU {
-                    *phase -= std::f32::consts::TAU;
-                }
-                value
-            }
+            NodeKind::Lfo => self.lfo_output_sample(node, 0.1),
             _ => 0.0,
         }
     }
 
-    fn resolve_numeric(&self, node: &PatchNode, keys: &[&str], fallback: f32) -> f32 {
+    fn resolve_numeric_data_only(&self, node: &PatchNode, keys: &[&str], fallback: f32) -> f32 {
+        for key in keys {
+            let compound_key = format!("{}:{}", node.id, key);
+            if let Some(&value) = self.node_param_overrides.get(&compound_key) {
+                return value;
+            }
+
+            if let Some(interface_input) = self
+                .compiled
+                .graph
+                .patch
+                .interface
+                .inputs
+                .iter()
+                .find(|input| input.node_id == node.id && input.param_id.eq_ignore_ascii_case(key))
+                && let Some(value) = self.input_values.get(&interface_input.key)
+            {
+                return *value;
+            }
+
+            if let Some(value) = node.data.get_number(key) {
+                return value as f32;
+            }
+        }
+        fallback
+    }
+
+    /// Non-LFO control sources **replace** the parameter (MIDI, constant, transport, …). LFO edges
+    /// are **additive** on top of patch data (`base + Σ lfo`).
+    fn resolve_param_base_plus_lfo_only(
+        &mut self,
+        node: &PatchNode,
+        data_keys: &[&str],
+        data_fallback: f32,
+        param_key: &str,
+    ) -> f32 {
+        let connections: Vec<GraphConnection> = self
+            .compiled
+            .control_connections
+            .iter()
+            .chain(self.compiled.trigger_connections.iter())
+            .filter(|connection| {
+                connection.target == node.id
+                    && connection.target_handle.as_deref() == Some(param_key)
+            })
+            .cloned()
+            .collect();
+
+        let mut lfo_sum = 0.0f32;
+        let gate_like = matches!(param_key, "gate" | "trigger");
+        let mut non_lfo: Option<f32> = None;
+
+        for connection in &connections {
+            let Some(source) = self
+                .compiled
+                .graph
+                .nodes
+                .iter()
+                .find(|candidate| candidate.id == connection.source)
+                .cloned()
+            else {
+                continue;
+            };
+            if source.kind == NodeKind::Lfo {
+                if let Some(v) = self.eval_orchestration_source(&source, connection) {
+                    lfo_sum += v;
+                }
+            } else if let Some(v) = self.eval_orchestration_source(&source, connection) {
+                non_lfo = Some(match non_lfo {
+                    None => v,
+                    Some(prev) if gate_like => prev.max(v),
+                    Some(prev) => prev,
+                });
+            }
+        }
+
+        let base = self.resolve_numeric_data_only(node, data_keys, data_fallback);
+        if let Some(v) = non_lfo {
+            v
+        } else {
+            base + lfo_sum
+        }
+    }
+
+    fn resolve_numeric(&mut self, node: &PatchNode, keys: &[&str], fallback: f32) -> f32 {
         for key in keys {
             if let Some(value) = self.resolve_numeric_from_connections(node, key) {
                 return value;
@@ -676,10 +790,9 @@ impl Engine {
 
     /// Resolves a parameter from [`CompiledGraph::control_connections`] and
     /// [`CompiledGraph::trigger_connections`] (trigger/gate edges are bucketed separately at compile time).
-    fn resolve_numeric_from_connections(&self, node: &PatchNode, key: &str) -> Option<f32> {
+    fn resolve_numeric_from_connections(&mut self, node: &PatchNode, key: &str) -> Option<f32> {
         let gate_like = matches!(key, "gate" | "trigger");
-        let mut acc: Option<f32> = None;
-        for connection in self
+        let connections: Vec<GraphConnection> = self
             .compiled
             .control_connections
             .iter()
@@ -687,14 +800,21 @@ impl Engine {
             .filter(|connection| {
                 connection.target == node.id && connection.target_handle.as_deref() == Some(key)
             })
-        {
-            let source = self
+            .cloned()
+            .collect();
+        let mut acc: Option<f32> = None;
+        for connection in &connections {
+            let Some(source) = self
                 .compiled
                 .graph
                 .nodes
                 .iter()
-                .find(|candidate| candidate.id == connection.source)?;
-            if let Some(value) = self.eval_orchestration_source(source, connection) {
+                .find(|candidate| candidate.id == connection.source)
+                .cloned()
+            else {
+                continue;
+            };
+            if let Some(value) = self.eval_orchestration_source(&source, connection) {
                 acc = Some(match acc {
                     None => value,
                     Some(prev) if gate_like => prev.max(value),
@@ -705,9 +825,27 @@ impl Engine {
         acc
     }
 
+    fn lfo_output_sample(&mut self, node: &PatchNode, scale: f32) -> f32 {
+        let rate = self.resolve_numeric_data_only(node, &["frequency"], 1.0);
+        let depth = self.resolve_numeric_data_only(node, &["depth", "amplitude"], 1.0);
+        let wf = self
+            .resolve_numeric_data_only(node, &["lfoWaveform"], 0.0)
+            .round() as i32;
+        let phase_key = format!("{}_lfo", node.id);
+        let phase = self.phases.entry(phase_key).or_insert(0.0);
+        let wave = Self::oscillator_waveform_sample(*phase, wf);
+        let v = wave * depth * scale;
+        let sr = self.config.sample_rate.max(1.0);
+        *phase += rate * TAU / sr;
+        if *phase > TAU {
+            *phase -= TAU;
+        }
+        v
+    }
+
     /// Scalar output from an orchestration / control source for the given edge.
     fn eval_orchestration_source(
-        &self,
+        &mut self,
         source: &PatchNode,
         connection: &GraphConnection,
     ) -> Option<f32> {
@@ -788,29 +926,40 @@ impl Engine {
                 _ => return None,
             });
         }
+        if source.kind == NodeKind::Lfo {
+            if connection.source_handle.as_deref().unwrap_or("out") != "out" {
+                return None;
+            }
+            return Some(self.lfo_output_sample(source, 1.0));
+        }
         None
     }
 
     /// Aggregates trigger/gate edges targeting a [`NodeKind::Voice`] `trigger` input (e.g. step + MIDI).
-    fn voice_incoming_trigger_level(&self, voice_id: &str) -> f32 {
+    fn voice_incoming_trigger_level(&mut self, voice_id: &str) -> f32 {
+        let connections: Vec<GraphConnection> = self
+            .compiled
+            .trigger_connections
+            .iter()
+            .filter(|connection| {
+                connection.target == voice_id
+                    && connection.target_handle.as_deref() == Some("trigger")
+            })
+            .cloned()
+            .collect();
         let mut level = 0.0f32;
-        for connection in &self.compiled.trigger_connections {
-            if connection.target != voice_id {
-                continue;
-            }
-            if connection.target_handle.as_deref() != Some("trigger") {
-                continue;
-            }
+        for connection in &connections {
             let Some(source) = self
                 .compiled
                 .graph
                 .nodes
                 .iter()
                 .find(|candidate| candidate.id == connection.source)
+                .cloned()
             else {
                 continue;
             };
-            if let Some(value) = self.eval_orchestration_source(source, connection) {
+            if let Some(value) = self.eval_orchestration_source(&source, connection) {
                 level = level.max(value);
             }
         }

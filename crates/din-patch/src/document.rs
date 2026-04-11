@@ -575,6 +575,10 @@ pub fn is_audio_connection_like(
         return is_audio_out_handle && is_audio_target_handle;
     }
 
+    if source_node.data.kind == NodeKind::Adsr && source_handle == "out" {
+        return is_audio_target_handle;
+    }
+
     if source_node.data.kind != NodeKind::Patch
         || !(source_handle == "out" || source_handle.starts_with("out:"))
     {
@@ -1188,6 +1192,7 @@ pub fn get_source_handle_ids(node: &PatchNode) -> BTreeSet<String> {
         }
         NodeKind::Adsr => {
             handle_ids.insert("envelope".to_string());
+            handle_ids.insert("out".to_string());
         }
         NodeKind::MidiNote => {
             for id in ["trigger", "frequency", "note", "gate", "velocity"] {
@@ -1267,6 +1272,7 @@ pub fn get_target_handle_ids(node: &PatchNode) -> BTreeSet<String> {
         }
     }
     if node.kind == NodeKind::Adsr {
+        handle_ids.insert("in".to_string());
         for id in ["gate", "attack", "decay", "sustain", "release"] {
             handle_ids.insert(id.to_string());
         }

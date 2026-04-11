@@ -2,8 +2,8 @@
 
 use din_patch::{
     PatchMidiInput, PatchMidiOutput, ensure_unique_name, get_source_handle_ids,
-    get_target_handle_ids, graph_document_to_patch, parse_patch_document, patch_to_graph_document,
-    reserved_identifiers, to_safe_identifier,
+    get_target_handle_ids, graph_document_to_patch, parse_graph_document, parse_patch_document,
+    patch_to_graph_document, reserved_identifiers, to_safe_identifier,
 };
 use serde_json::Value;
 
@@ -30,6 +30,37 @@ fn parses_and_rebuilds_interface_from_canonical_fixture() {
         PatchMidiOutput::Cc(output) => assert_eq!(output.key, "cutoffOut"),
         other => panic!("expected midi cc output, got {other:?}"),
     }
+}
+
+#[test]
+fn graph_gain_to_adsr_audio_in_validates() {
+    let graph_json = r#"{
+        "name": "test",
+        "nodes": [
+            {
+                "id": "g",
+                "position": { "x": 0, "y": 0 },
+                "data": { "type": "gain", "gain": 1 }
+            },
+            {
+                "id": "a",
+                "position": { "x": 0, "y": 0 },
+                "data": { "type": "adsr", "attack": 0.01, "decay": 0.1, "sustain": 0.7, "release": 0.3 }
+            }
+        ],
+        "edges": [
+            {
+                "id": "g->a:in",
+                "source": "g",
+                "sourceHandle": "out",
+                "target": "a",
+                "targetHandle": "in"
+            }
+        ]
+    }"#;
+    let graph = parse_graph_document(graph_json).expect("graph JSON should parse");
+    graph_document_to_patch(&graph)
+        .expect("gain out -> adsr in should validate (react-din wasm graph)");
 }
 
 #[test]

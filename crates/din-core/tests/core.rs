@@ -718,7 +718,10 @@ fn midi_note_on_with_frame_offset_is_applied_in_block() {
                 data: PatchNodeData {
                     kind: NodeKind::Osc,
                     label: None,
-                    properties: BTreeMap::new(),
+                    properties: BTreeMap::from([(
+                        "useGlobalMidiGate".to_string(),
+                        serde_json::json!(true),
+                    )]),
                 },
             },
             PatchNode {
@@ -780,7 +783,10 @@ fn midi_note_off_with_frame_offset_stops_signal_in_block() {
                 data: PatchNodeData {
                     kind: NodeKind::Osc,
                     label: None,
-                    properties: BTreeMap::new(),
+                    properties: BTreeMap::from([(
+                        "useGlobalMidiGate".to_string(),
+                        serde_json::json!(true),
+                    )]),
                 },
             },
             PatchNode {
