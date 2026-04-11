@@ -83,6 +83,9 @@ pub struct Engine {
     compiled: CompiledGraph,
     config: EngineConfig,
     input_values: BTreeMap<String, f32>,
+    /// Runtime overrides for node parameters (`"{node_id}:{param_name}"` → value).
+    /// Applied in [`Engine::resolve_numeric`] after control connections and before patch `interface` inputs.
+    node_param_overrides: BTreeMap<String, f32>,
     event_tokens: BTreeMap<String, u64>,
     last_event_tokens: BTreeMap<String, u64>,
     assets: BTreeMap<String, Vec<u8>>,
@@ -155,6 +158,7 @@ impl Engine {
                 block_size: config.block_size.max(1),
             },
             input_values,
+            node_param_overrides: BTreeMap::new(),
             event_tokens: BTreeMap::new(),
             last_event_tokens: BTreeMap::new(),
             assets: BTreeMap::new(),
@@ -230,6 +234,15 @@ impl Engine {
         }
         self.input_values.insert(key.to_string(), value);
         Ok(())
+    }
+
+    /// Sets a per-node parameter override by compound key `"{node_id}:{param_name}"`.
+    ///
+    /// Used by the React / worklet host to update props without rebuilding the compiled graph.
+    /// Values are read in [`Engine::resolve_numeric`] after control edges and before `interface` inputs.
+    pub fn set_node_param(&mut self, compound_key: &str, value: f32) {
+        self.node_param_overrides
+            .insert(compound_key.to_string(), value);
     }
 
     /// Records an interface event trigger by key and token.
@@ -633,6 +646,11 @@ impl Engine {
     fn resolve_numeric(&self, node: &PatchNode, keys: &[&str], fallback: f32) -> f32 {
         for key in keys {
             if let Some(value) = self.resolve_numeric_from_connections(node, key) {
+                return value;
+            }
+
+            let compound_key = format!("{}:{}", node.id, key);
+            if let Some(&value) = self.node_param_overrides.get(&compound_key) {
                 return value;
             }
 

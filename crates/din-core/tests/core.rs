@@ -383,6 +383,63 @@ fn patch_with_nodes_and_connections(
 }
 
 #[test]
+fn engine_set_node_param_overrides_osc_frequency() {
+    let patch = patch_with_nodes_and_connections(
+        vec![
+            PatchNode {
+                id: "osc-1".to_string(),
+                kind: NodeKind::Osc,
+                position: None,
+                data: PatchNodeData {
+                    kind: NodeKind::Osc,
+                    label: None,
+                    properties: BTreeMap::from([(
+                        "frequency".to_string(),
+                        serde_json::json!(220.0),
+                    )]),
+                },
+            },
+            PatchNode {
+                id: "output-1".to_string(),
+                kind: NodeKind::Output,
+                position: None,
+                data: PatchNodeData {
+                    kind: NodeKind::Output,
+                    label: None,
+                    properties: BTreeMap::new(),
+                },
+            },
+        ],
+        vec![PatchConnection {
+            id: "c-1".to_string(),
+            source: "osc-1".to_string(),
+            target: "output-1".to_string(),
+            source_handle: Some("out".to_string()),
+            target_handle: Some("in".to_string()),
+        }],
+    );
+    let compiled = CompiledGraph::from_patch(&patch).expect("graph should compile");
+    let mut engine = Engine::new(
+        compiled,
+        EngineConfig {
+            sample_rate: 48_000.0,
+            channels: 1,
+            block_size: 64,
+        },
+    )
+    .expect("engine should initialize");
+
+    let before = engine.render_block();
+    engine.set_node_param("osc-1:frequency", 2_000.0);
+    let after = engine.render_block();
+
+    assert_ne!(
+        before, after,
+        "set_node_param should change rendered audio vs patch default"
+    );
+}
+
+#[test]
 fn graph_rewiring_changes_rendered_output() {
     let osc = PatchNode {
         id: "osc-1".to_string(),

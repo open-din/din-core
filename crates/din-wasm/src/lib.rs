@@ -479,6 +479,11 @@ impl AudioRuntime {
         self.inner.set_input(key, value).map_err(to_js_error)
     }
 
+    #[wasm_bindgen(js_name = setNodeParam)]
+    pub fn set_node_param(&mut self, compound_key: &str, value: f32) {
+        self.inner.set_node_param(compound_key, value);
+    }
+
     #[wasm_bindgen(js_name = triggerEvent)]
     pub fn trigger_event(&mut self, key: &str, token: u64) -> Result<(), JsValue> {
         self.inner.trigger_event(key, token).map_err(to_js_error)
