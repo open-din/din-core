@@ -131,6 +131,11 @@ impl Transport {
         self.step_index
     }
 
+    /// Moves the transport playhead to an absolute step index without changing play state.
+    pub fn seek_to_step(&mut self, step: u64) {
+        self.step_index = step;
+    }
+
     /// Returns the duration of one beat in seconds.
     pub fn seconds_per_beat(&self) -> f64 {
         60.0 / self.config.bpm

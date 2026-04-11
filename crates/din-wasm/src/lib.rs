@@ -205,6 +205,21 @@ pub fn graph_from_patch(json: &str) -> Result<JsValue, JsValue> {
     serde_wasm_bindgen::to_value(&graph).map_err(to_js_error)
 }
 
+#[wasm_bindgen]
+pub fn graph_document_to_patch(json: &str) -> Result<String, JsValue> {
+    graph_document_to_patch_impl(json).map_err(to_js_error)
+}
+
+#[wasm_bindgen]
+pub fn patch_to_graph_document(json: &str) -> Result<String, JsValue> {
+    patch_to_graph_document_impl(json).map_err(to_js_error)
+}
+
+#[wasm_bindgen]
+pub fn resolve_patch_asset_path(asset_path: &str, asset_root: &str) -> Option<String> {
+    resolve_patch_asset_path_impl(asset_path, asset_root)
+}
+
 /// Returns the full compiled graph as a plain JS object. Use `compile_patch` when you only need counts and transport ids.
 #[wasm_bindgen]
 pub fn compiled_graph_from_patch(json: &str) -> Result<JsValue, JsValue> {
@@ -406,6 +421,11 @@ impl TransportRuntime {
     #[wasm_bindgen(js_name = stepIndex)]
     pub fn step_index(&self) -> u64 {
         self.inner.step_index()
+    }
+
+    #[wasm_bindgen(js_name = seekToStep)]
+    pub fn seek_to_step(&mut self, step: u64) {
+        self.inner.seek_to_step(step);
     }
 
     #[wasm_bindgen(js_name = secondsPerBeat)]
@@ -666,6 +686,22 @@ pub fn compile_patch_impl(json: &str) -> Result<CompiledGraph, din_core::CoreErr
 pub fn graph_from_patch_impl(json: &str) -> Result<Graph, din_core::CoreError> {
     let patch = PatchImporter::from_json(json)?;
     PatchImporter::graph_from_patch(&patch)
+}
+
+pub fn graph_document_to_patch_impl(json: &str) -> Result<String, din_core::CoreError> {
+    let graph = din_core::parse_graph_document(json)?;
+    let patch = din_core::graph_document_to_patch(&graph)?;
+    serde_json::to_string(&patch).map_err(Into::into)
+}
+
+pub fn patch_to_graph_document_impl(json: &str) -> Result<String, din_core::CoreError> {
+    let patch = PatchImporter::from_json(json)?;
+    let graph = din_core::patch_to_graph_document(&patch, Default::default())?;
+    serde_json::to_string(&graph).map_err(Into::into)
+}
+
+pub fn resolve_patch_asset_path_impl(asset_path: &str, asset_root: &str) -> Option<String> {
+    din_core::resolve_patch_asset_path(Some(asset_path), Some(asset_root))
 }
 
 pub fn din_core_version_impl() -> &'static str {

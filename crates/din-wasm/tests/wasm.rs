@@ -1,13 +1,15 @@
 //! WASM integration tests for patch, helper, transport, and runtime bindings.
 
 use din_wasm::{
-    AudioRuntime, all_audio_node_entries_impl, audio_clamp_impl, audio_compare_impl,
-    audio_math_impl, audio_mix, audio_nodes, audio_nodes_impl, audio_runtime_transport_state_impl,
-    audio_switch, compile_patch_impl, din_core_version_impl, engine_runtime_snapshot_impl,
-    graph_from_patch_impl, midi_to_freq_value, midi_to_note_value, migrate_patch_impl,
-    note_from_french_impl, note_to_french_impl, note_to_freq_impl, note_to_midi_impl,
-    parse_note_impl, patch_interface_impl, render_audio_block_impl, transport_advance_impl,
-    transport_defaults_impl, transport_mode_tick, validate_patch_impl,
+    AudioRuntime, TransportRuntime, all_audio_node_entries_impl, audio_clamp_impl,
+    audio_compare_impl, audio_math_impl, audio_mix, audio_nodes, audio_nodes_impl,
+    audio_runtime_transport_state_impl, audio_switch, compile_patch_impl, din_core_version_impl,
+    engine_runtime_snapshot_impl, graph_document_to_patch_impl, graph_from_patch_impl,
+    midi_to_freq_value, midi_to_note_value, migrate_patch_impl, note_from_french_impl,
+    note_to_french_impl, note_to_freq_impl, note_to_midi_impl, parse_note_impl,
+    patch_interface_impl, patch_to_graph_document_impl, render_audio_block_impl,
+    resolve_patch_asset_path_impl, transport_advance_impl, transport_defaults_impl,
+    transport_mode_tick, validate_patch_impl,
 };
 use serde_json::Value;
 
@@ -61,6 +63,43 @@ fn wasm_helpers_reuse_shared_patch_logic() {
         din_core_version_impl(),
         din_core::DIN_CORE_VERSION,
         "wasm binding should expose din-core version directly"
+    );
+}
+
+#[test]
+fn wasm_exports_graph_document_to_patch() {
+    let graph = graph_from_patch_impl(FIXTURE).expect("graph should build");
+    let graph_json = serde_json::to_string(&graph).expect("graph should serialize");
+    let patch_json =
+        graph_document_to_patch_impl(&graph_json).expect("graph to patch export should work");
+    let patch: Value = serde_json::from_str(&patch_json).expect("patch json should parse");
+    assert_eq!(patch["version"].as_u64(), Some(1));
+    assert!(
+        patch["nodes"].as_array().map(|nodes| !nodes.is_empty()) == Some(true),
+        "converted patch should include nodes"
+    );
+}
+
+#[test]
+fn wasm_exports_patch_to_graph_document() {
+    let graph_json = patch_to_graph_document_impl(FIXTURE).expect("patch to graph should work");
+    let graph: Value = serde_json::from_str(&graph_json).expect("graph json should parse");
+    assert!(
+        graph["nodes"].as_array().map(|nodes| !nodes.is_empty()) == Some(true),
+        "converted graph should include nodes"
+    );
+    assert!(
+        graph["edges"].as_array().map(|edges| !edges.is_empty()) == Some(true),
+        "converted graph should include edges"
+    );
+}
+
+#[test]
+fn wasm_exports_resolve_patch_asset_path() {
+    let resolved = resolve_patch_asset_path_impl("impulses/hall.wav", "https://cdn.example.com");
+    assert_eq!(
+        resolved.as_deref(),
+        Some("https://cdn.example.com/impulses/hall.wav")
     );
 }
 
@@ -172,6 +211,16 @@ fn wasm_exposes_transport_tick_advancement() {
     assert_eq!(ticks.len(), 2);
     assert_eq!(ticks[0].step_index, 0);
     assert_eq!(ticks[1].step_index, 1);
+}
+
+#[test]
+fn wasm_transport_runtime_seek_to_step() {
+    let mut runtime = TransportRuntime::new();
+    assert_eq!(runtime.step_index(), 0);
+    runtime.seek_to_step(64);
+    assert_eq!(runtime.step_index(), 64);
+    runtime.seek_to_step(128);
+    assert_eq!(runtime.step_index(), 128);
 }
 
 #[test]
