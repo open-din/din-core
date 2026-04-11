@@ -569,17 +569,33 @@ impl Engine {
                 *state * source.signum() * 0.2
             }
             NodeKind::Panner3d => {
-                let x = self.resolve_numeric(node, &["x"], 0.0).clamp(-1.0, 1.0);
-                let y = self.resolve_numeric(node, &["y"], 0.0).clamp(-1.0, 1.0);
-                let z = self.resolve_numeric(node, &["z"], 0.0).clamp(-1.0, 1.0);
+                let x = self
+                    .resolve_numeric(node, &["positionX", "x"], 0.0)
+                    .clamp(-1.0, 1.0);
+                let y = self
+                    .resolve_numeric(node, &["positionY", "y"], 0.0)
+                    .clamp(-1.0, 1.0);
+                let z = self
+                    .resolve_numeric(node, &["positionZ", "z"], 0.0)
+                    .clamp(-1.0, 1.0);
                 let distance = (x * x + y * y + z * z).sqrt().clamp(0.0, 1.732);
                 let attenuation = 1.0 / (1.0 + distance);
-                self.seeded_noise(node, "panner3d_in", 0.642) * attenuation * 0.08
+                let source = if input_sample.abs() > 0.000_001 {
+                    input_sample
+                } else {
+                    self.seeded_noise(node, "panner3d_in", 0.642) * 0.08
+                };
+                source * attenuation
             }
             NodeKind::Panner => {
                 let pan = self.resolve_numeric(node, &["pan"], 0.0).clamp(-1.0, 1.0);
                 let attenuation = 1.0 - pan.abs() * 0.5;
-                self.seeded_noise(node, "panner_in", 0.733) * attenuation * 0.08
+                let source = if input_sample.abs() > 0.000_001 {
+                    input_sample
+                } else {
+                    self.seeded_noise(node, "panner_in", 0.733) * 0.08
+                };
+                source * attenuation
             }
             NodeKind::AuxSend => {
                 let amount = self.resolve_numeric(node, &["amount", "level"], 0.5);
