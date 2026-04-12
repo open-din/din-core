@@ -2,6 +2,10 @@
 //! and compiled routing metadata (see [`compile_patch`] for the small summary-only export).
 #![allow(missing_docs)] // Wasm-bindgen exports mirror `din_core` helpers.
 
+mod din_document_wasm;
+
+pub use din_document_wasm::{din_document_validate_json_impl, worker_dispatch_message_json_impl};
+
 use din_core::{
     ClampMode, CompareOperation, CompiledGraph, Engine, EngineConfig, EngineRuntimeSnapshot, Graph,
     MathOperation, MidiMessage as CoreMidiMessage, PatchExporter, PatchImporter,

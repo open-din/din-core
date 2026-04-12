@@ -406,6 +406,9 @@ pub struct DspModule {
     /// Declared outputs.
     #[serde(default)]
     pub outputs: Vec<PortOutput>,
+    /// Execution profile payload (requires `profiles` to include [`DocumentProfile::Execution`]).
+    #[serde(default)]
+    pub execution: Option<Value>,
 }
 
 /// Instance of a [`DspModule`] inside a [`Scene`].
@@ -744,6 +747,17 @@ pub struct Scene {
     /// Timeline content.
     #[serde(default)]
     pub timeline: Option<Timeline>,
+    /// Host binding profile payload (requires `profiles` to include host-binding).
+    #[serde(default, rename = "hostBindings")]
+    pub host_bindings: Option<HostBindings>,
+}
+
+/// Scene-level host bindings container (`host-binding` profile).
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct HostBindings {
+    /// Individual host bindings (shape validated when the profile is enabled).
+    pub bindings: Vec<Value>,
 }
 
 impl DinDocument {

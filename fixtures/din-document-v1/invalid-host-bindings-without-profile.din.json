@@ -1,0 +1,53 @@
+{
+  "format": "open-din/din-document",
+  "version": 1,
+  "asset": {
+    "title": "hostBindings without profile"
+  },
+  "assetRoot": "./",
+  "collections": {
+    "buffers": [],
+    "bufferViews": [],
+    "audioSources": [],
+    "midiSources": [],
+    "sampleSlots": [],
+    "impulses": [],
+    "dspModules": []
+  },
+  "defaultSceneId": "s",
+  "scenes": [
+    {
+      "id": "s",
+      "name": "S",
+      "inputs": [
+        {
+          "id": "gain",
+          "type": "number",
+          "range": {
+            "min": 0,
+            "max": 1,
+            "scale": "linear"
+          }
+        }
+      ],
+      "outputs": [],
+      "hostBindings": {
+        "bindings": [
+          {
+            "kind": "midi-cc",
+            "direction": "into-scene",
+            "channel": 1,
+            "cc": 7,
+            "target": {
+              "kind": "sceneInput",
+              "inputId": "gain"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "extensionsUsed": [],
+  "extensionsRequired": [],
+  "extensions": {}
+}

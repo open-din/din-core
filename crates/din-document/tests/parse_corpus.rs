@@ -75,3 +75,36 @@ fn invalid_enum_fails_at_parse() {
     let err = parse_document_json_str(&text).expect_err("unknown enum variant");
     assert!(!err.message.is_empty());
 }
+
+#[test]
+fn execution_descriptor_without_profile_rejected() {
+    let doc = parse_fixture("invalid-execution-without-profile.din.json");
+    let report = validate_document(&doc);
+    assert!(!report.accepted);
+    assert!(
+        report
+            .issues
+            .iter()
+            .any(|i| i.code == IssueCode::UnsupportedProfileFeature)
+    );
+}
+
+#[test]
+fn host_bindings_without_profile_rejected() {
+    let doc = parse_fixture("invalid-host-bindings-without-profile.din.json");
+    let report = validate_document(&doc);
+    assert!(!report.accepted);
+    assert!(
+        report
+            .issues
+            .iter()
+            .any(|i| i.code == IssueCode::UnsupportedProfileFeature)
+    );
+}
+
+#[test]
+fn host_binding_valid_accepted() {
+    let doc = parse_fixture("host-binding-valid.din.json");
+    let report = validate_document(&doc);
+    assert!(report.accepted, "{report:?}");
+}

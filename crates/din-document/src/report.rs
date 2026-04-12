@@ -12,6 +12,14 @@ pub enum IssueCode {
     UnresolvedReference,
     /// JSON or serde deserialize failure.
     ParseError,
+    /// Directed route graph contains a cycle.
+    RouteCycle,
+    /// More than one route targets the same sink endpoint.
+    MultipleWritersToSink,
+    /// Profile-specific fields are present without the matching profile declaration.
+    UnsupportedProfileFeature,
+    /// Host binding references a missing scene input/output surface.
+    HostBindingUnresolved,
 }
 
 impl IssueCode {
@@ -21,6 +29,10 @@ impl IssueCode {
             IssueCode::InvalidFormatVersion => "invalid_format_version",
             IssueCode::UnresolvedReference => "unresolved_reference",
             IssueCode::ParseError => "parse_error",
+            IssueCode::RouteCycle => "route_cycle",
+            IssueCode::MultipleWritersToSink => "multiple_writers_to_sink",
+            IssueCode::UnsupportedProfileFeature => "unsupported_profile_feature",
+            IssueCode::HostBindingUnresolved => "host_binding_unresolved",
         }
     }
 }

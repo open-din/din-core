@@ -13,7 +13,7 @@ English only. See `project/skills/v2-refactor-task/SKILL.md` and `.cursor/rules/
 
 ## Critical path (sequential)
 
-`01-model` → `02-parse` → `03-validation` (completed: see `v2/features/01-*.feature` … `03-*.feature`) → `04-document-handle` → `05-graph-view` → `06-runtime-session` → `07-transport-sequencer-bridge` → `08-wasm-bindings` → `09-worker-messages` → `10-cross-target-parity`
+`01-model` → `02-parse` → `03-validation` → `04-document-handle` → `05-graph-view` → `06-runtime-session` → `07-transport-sequencer-bridge` → `08-wasm-bindings` → `09-worker-messages` → `10-cross-target-parity` → `11-execution-profile` → `12-host-binding-profile` — implemented under `v2/features/` (see matching `docs_v2/*.md`).
 
 ## Parallel-safe (after shared types land)
 

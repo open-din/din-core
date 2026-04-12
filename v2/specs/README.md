@@ -32,3 +32,19 @@ This dossier is aligned with DinDocument v1 core concepts:
 - optional execution and host-binding profiles
 
 It also preserves the spec's design boundary that host protocol bindings and executable artifact behavior are not part of the core interchange model.
+
+## Cross-repo v2 references
+
+| Package | Location |
+|--------|----------|
+| **Normative DinDocument** (schemas, examples) | Workspace `open-din/v2/` — [README](../../../v2/README.md) |
+| **Core** (this dossier) | `din-core/v2/specs/*.md` |
+| **Studio** (editor, codegen, graph product) | Sibling `din-studio/v2/specs/` |
+
+### Agent documentation load order (keep context small)
+
+1. **Legacy dossier** — only if needed for migration or parity: `din-core-specs/*.md` paths **cited by the task** (not the full folder by default).
+2. **`docs_v2/`** — task page for the active slug when present.
+3. **`v2/specs/`** — only numbered files **cited by the task**.
+4. **`v2/user-stories/*.feature`** — only story files **required** by the task.
+5. **Interchange** — `open-din/v2` files **cited** (schema, `fixtures/din-document-v1/` mirrors of examples).

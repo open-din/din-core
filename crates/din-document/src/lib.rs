@@ -5,11 +5,18 @@
 
 #![warn(missing_docs)]
 
+mod graph;
+mod handle;
 mod model;
 mod parse;
 mod report;
 mod validate;
 
+pub use graph::{
+    SceneRouteGraph, build_scene_route_graph, directed_graph_has_cycle, route_endpoint_key,
+    topological_order,
+};
+pub use handle::{DocumentHandle, DocumentHandleBuildError, SceneGraphView};
 pub use model::*;
 pub use parse::{ParseError, parse_document_json_str, parse_document_json_value};
 pub use report::{IssueCode, ValidationIssue, ValidationReport};

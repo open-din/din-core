@@ -11,6 +11,7 @@ crate-type = ["rlib", "cdylib"]
 
 [dependencies]
 din-core.workspace = true
+din-document = { path = "../din-document" }
 serde.workspace = true
 serde_json.workspace = true
 serde-wasm-bindgen.workspace = true

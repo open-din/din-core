@@ -2,6 +2,7 @@
 
 pub mod audio;
 mod data;
+pub mod document_v1;
 mod engine;
 mod graph;
 mod notes;
@@ -37,6 +38,11 @@ pub use notes::{
 };
 pub use registry::{NodeRegistryEntry, node_registry, registry_entry, registry_has_all_node_kinds};
 pub use transport::{Transport, TransportConfig, TransportMode, TransportTick};
+
+pub use document_v1::{
+    BridgeController, RuntimeSession, RuntimeSessionError, SequencerController, TransportCommand,
+    TransportController,
+};
 
 /// Version string for this `din-core` crate, re-exported for thin wrapper bindings.
 pub const DIN_CORE_VERSION: &str = env!("CARGO_PKG_VERSION");

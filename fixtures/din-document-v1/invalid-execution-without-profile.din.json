@@ -1,0 +1,38 @@
+{
+  "format": "open-din/din-document",
+  "version": 1,
+  "asset": {
+    "title": "Execution field without profile"
+  },
+  "assetRoot": "./",
+  "collections": {
+    "buffers": [],
+    "bufferViews": [],
+    "audioSources": [],
+    "midiSources": [],
+    "sampleSlots": [],
+    "impulses": [],
+    "dspModules": [
+      {
+        "id": "gain",
+        "name": "Gain",
+        "inputs": [],
+        "outputs": [],
+        "execution": {
+          "engine": "faust-wasm",
+          "sourcePolicy": "artifacts-only"
+        }
+      }
+    ]
+  },
+  "defaultSceneId": "s",
+  "scenes": [
+    {
+      "id": "s",
+      "name": "S"
+    }
+  ],
+  "extensionsUsed": [],
+  "extensionsRequired": [],
+  "extensions": {}
+}

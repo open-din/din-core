@@ -10,6 +10,7 @@ description = "DinDocument v1 typed model, parse, and validation for din-core"
 [dependencies]
 serde = { workspace = true }
 serde_json = { workspace = true }
+thiserror = { workspace = true }
 
 [lints]
 workspace = true

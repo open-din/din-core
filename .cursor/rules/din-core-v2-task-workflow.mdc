@@ -17,7 +17,18 @@ Follow `AGENTS.md` load order first.
 
 - **Normative interchange**: sibling workspace `open-din/v2` (schemas, markdown specs, examples).
 - **Implementation dossier**: `v2/specs/*.md` in this repo.
+- Cross-repo index: `v2/specs/README.md` (table: `open-din/v2`, `din-core/v2/specs`, `din-studio/v2/specs`).
 - When `v2/specs` or `open-din/v2` conflict with legacy `din-patch` / engine behavior, **v2 specs and DinDocument v1 take precedence** for new work.
+
+## Documentation load order (minimize context)
+
+Read **only paths cited by the active task** — not whole folders — in this order:
+
+1. `din-core-specs/` sections **only if** the task cites them (legacy parity or migration).
+2. `docs_v2/<task-slug>.md` when present.
+3. `v2/specs/` numbered files cited by the task.
+4. `v2/user-stories/*.feature` files the task requires.
+5. `open-din/v2` files cited in the task; `fixtures/din-document-v1/` as needed for examples.
 
 ## Language
 

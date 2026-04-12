@@ -1,0 +1,67 @@
+{
+  "format": "open-din/din-document",
+  "version": 1,
+  "asset": {
+    "title": "Invalid cyclic routes (scene I/O loop)"
+  },
+  "assetRoot": "./",
+  "collections": {
+    "buffers": [],
+    "bufferViews": [],
+    "audioSources": [],
+    "midiSources": [],
+    "sampleSlots": [],
+    "impulses": [],
+    "dspModules": []
+  },
+  "defaultSceneId": "loop",
+  "scenes": [
+    {
+      "id": "loop",
+      "name": "Loop",
+      "inputs": [
+        {
+          "id": "inA",
+          "type": "number",
+          "range": {
+            "min": 0,
+            "max": 1,
+            "scale": "linear"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "id": "outB",
+          "type": "audio",
+          "channels": 2
+        }
+      ],
+      "routes": [
+        {
+          "from": {
+            "kind": "sceneInput",
+            "inputId": "inA"
+          },
+          "to": {
+            "kind": "sceneOutput",
+            "outputId": "outB"
+          }
+        },
+        {
+          "from": {
+            "kind": "sceneOutput",
+            "outputId": "outB"
+          },
+          "to": {
+            "kind": "sceneInput",
+            "inputId": "inA"
+          }
+        }
+      ]
+    }
+  ],
+  "extensionsUsed": [],
+  "extensionsRequired": [],
+  "extensions": {}
+}

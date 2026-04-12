@@ -13,7 +13,12 @@
 
 1. Read `AGENTS.md`, `project/ROUTE_CARD.json`, and this skill.
 2. Pick **one** task file from `tasks/todo/*.feature` and move it to `tasks/doing/`.
-3. Read linked sections in `v2/specs` and the relevant `open-din/v2` schema or examples cited in the task comments.
+3. **Documentation (smallest context first, only cited paths):**
+   - `din-core-specs/` **only if** the task cites legacy dossier sections.
+   - `docs_v2/<task-slug>.md` if it exists.
+   - `v2/specs/*.md` **only** files referenced by the task.
+   - `v2/user-stories/*.feature` **only** stories the task links or needs.
+   - `open-din/v2` — schema, examples, or markdown **cited in the task** (and `fixtures/din-document-v1/` when the task uses examples).
 4. **TDD**: add failing tests first (unit + integration against `fixtures/din-document-v1/` where applicable), then implement.
 5. Add or update **rustdoc** (`///`) for all new public API in scope.
 6. Add or update **`docs_v2/<task-slug>.md`** describing behavior, error codes, fixtures, and link to the Gherkin task path.

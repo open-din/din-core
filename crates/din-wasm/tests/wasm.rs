@@ -1,15 +1,16 @@
 //! WASM integration tests for patch, helper, transport, and runtime bindings.
 
+use din_document::{parse_document_json_str, validate_document};
 use din_wasm::{
     AudioRuntime, TransportRuntime, all_audio_node_entries_impl, audio_clamp_impl,
     audio_compare_impl, audio_math_impl, audio_mix, audio_nodes, audio_nodes_impl,
     audio_runtime_transport_state_impl, audio_switch, compile_patch_impl, din_core_version_impl,
-    engine_runtime_snapshot_impl, graph_document_to_patch_impl, graph_from_patch_impl,
-    midi_to_freq_value, midi_to_note_value, migrate_patch_impl, note_from_french_impl,
-    note_to_french_impl, note_to_freq_impl, note_to_midi_impl, parse_note_impl,
-    patch_interface_impl, patch_to_graph_document_impl, render_audio_block_impl,
+    din_document_validate_json_impl, engine_runtime_snapshot_impl, graph_document_to_patch_impl,
+    graph_from_patch_impl, midi_to_freq_value, midi_to_note_value, migrate_patch_impl,
+    note_from_french_impl, note_to_french_impl, note_to_freq_impl, note_to_midi_impl,
+    parse_note_impl, patch_interface_impl, patch_to_graph_document_impl, render_audio_block_impl,
     resolve_patch_asset_path_impl, transport_advance_impl, transport_defaults_impl,
-    transport_mode_tick, validate_patch_impl,
+    transport_mode_tick, validate_patch_impl, worker_dispatch_message_json_impl,
 };
 use serde_json::Value;
 
@@ -526,4 +527,38 @@ fn wasm_audio_runtime_maps_realtime_midi_to_transport_state() {
     runtime.render_block();
     let continued = audio_runtime_transport_state_impl(&runtime);
     assert!(continued.running);
+}
+
+const MINIMAL_DIN: &str = include_str!("../../../fixtures/din-document-v1/minimal.din.json");
+
+#[test]
+fn wasm_din_document_validate_matches_native() {
+    let doc = parse_document_json_str(MINIMAL_DIN).expect("parse");
+    let native = validate_document(&doc);
+    let wasm = din_document_validate_json_impl(MINIMAL_DIN);
+    assert_eq!(
+        native.accepted,
+        wasm["accepted"].as_bool().expect("accepted flag")
+    );
+    let ncodes: Vec<&str> = native.issues.iter().map(|i| i.code.as_str()).collect();
+    let wcodes: Vec<String> = wasm["issues"]
+        .as_array()
+        .expect("issues")
+        .iter()
+        .map(|row| row["code"].as_str().expect("issue code").to_string())
+        .collect();
+    let wrefs: Vec<&str> = wcodes.iter().map(String::as_str).collect();
+    assert_eq!(ncodes, wrefs);
+}
+
+#[test]
+fn wasm_worker_dispatch_round_trips_document_open() {
+    let payload = serde_json::json!({
+        "family": "document/open",
+        "payload": { "json": MINIMAL_DIN }
+    });
+    let msg = payload.to_string();
+    let out = worker_dispatch_message_json_impl(&msg).expect("dispatch");
+    assert_eq!(out["accepted"].as_bool(), Some(true));
+    assert_eq!(out["ok"].as_bool(), Some(true));
 }
