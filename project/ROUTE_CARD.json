@@ -23,6 +23,12 @@
     "exact regression test",
     "fixtures/din-document-v1/"
   ],
+  "narrative_before_code": [
+    "project/SUMMARY.md",
+    "project/USERFLOW.md",
+    "project/TEST_MATRIX.md"
+  ],
+  "narrative_policy": "Broad product context before opening crates/: read only narrative_before_code (after this file). Per-task detail: project/features/<nn>-*.feature and docs_v2/<slug>.md when cited. Do not preload README.md, docs/ legacy narratives, or din-core-specs/ unless the task explicitly requires them.",
   "features_glob": "project/features/*.feature",
   "features": [
     {

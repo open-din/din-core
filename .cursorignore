@@ -1,0 +1,21 @@
+# Cursor indexing: exclude build artifacts and generated wasm-pack output.
+# Hand-maintained docs stay visible: crates/din-wasm/pkg/docs/
+
+# Rust build tree
+target/
+
+# wasm-pack / bindgen outputs (large or noisy; not source of truth)
+crates/din-wasm/pkg/din_wasm_bg.wasm
+crates/din-wasm/pkg/din_wasm.js
+crates/din-wasm/pkg/din_wasm_bg.js
+crates/din-wasm/pkg/din_wasm.d.ts
+crates/din-wasm/pkg/din_wasm_bg.wasm.d.ts
+
+# Any stray wasm binaries
+*.wasm
+
+# If npm tooling is added under pkg or repo root
+node_modules/
+
+# Common generated folders
+dist/

@@ -3,10 +3,11 @@
 ## LOAD ORDER
 
 1. `AGENTS.md`
-2. `project/ROUTE_CARD.json`
-3. One matching file in `project/skills/`
-4. The exact crate module
-5. The exact regression test
+2. `project/ROUTE_CARD.json` (includes `narrative_before_code` + `narrative_policy`)
+3. **Narrative layer only** — `project/SUMMARY.md`, `project/USERFLOW.md`, `project/TEST_MATRIX.md` (no other broad doc tree before code)
+4. One matching file in `project/skills/`
+5. The exact crate module (and `docs_v2/<slug>.md` only when the task cites that slug)
+6. The exact regression test
 
 ## ROUTE HERE WHEN
 

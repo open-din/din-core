@@ -1,5 +1,7 @@
 # SUMMARY
 
+With `project/USERFLOW.md` and `project/TEST_MATRIX.md`, this is the **only** repo-wide narrative layer before opening `crates/` (see `project/ROUTE_CARD.json` → `narrative_before_code`).
+
 ## PURPOSE
 
 Rust workspace for **DinDocument v1** (core profile): typed JSON model, parse pipeline, semantic validation, read-only `DocumentHandle` and route **graph** views, a minimal **`RuntimeSession`** with transport / sequencer / bridge controllers, and **WebAssembly** bindings plus a **worker** JSON dispatcher.
