@@ -1,7 +1,6 @@
 /target
-/docs/generated
 /Cargo.lock
-/.DS_Store
+.DS_Store
 *.wasm
 *.dylib
 *.so

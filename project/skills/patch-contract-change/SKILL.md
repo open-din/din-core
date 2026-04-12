@@ -1,23 +1,14 @@
-# SKILL: patch-contract-change
+# SKILL: patch-contract-change (ARCHIVED)
 
-## REPO
+## Status
 
-`din-core`
+The `din-patch` crate has been **removed** from this workspace. Legacy react-din **patch JSON** contract work belongs in **`react-din`** (`schemas/patch.schema.json`, patch helpers).
 
 ## WHEN TO USE
 
-- Patch validation, migration, or round-trip behavior changes
-- Public contract parity with `react-din` is in scope
+- Only when explicitly restoring or maintaining a archived patch parser **outside** this repo’s v2 scope.
 
 ## STEPS
 
-1. Read `project/ROUTE_CARD.json` and the matching `din-patch` module.
-2. Update `crates/din-patch` or `crates/din-core` first.
-3. Keep `schemas/patch.schema.json` and `fixtures/canonical_patch.json` aligned.
-4. Escalate to `react-din` for published schema or persisted ID changes.
-
-## VALIDATION
-
-- `cargo fmt --all --check`
-- `cargo clippy --workspace --all-targets -- -D warnings`
-- `cargo test --workspace`
+1. Do **not** apply this skill for DinDocument v2 tasks — use `project/skills/v2-refactor-task/SKILL.md` instead.
+2. If patch contract editing is required, coordinate with `react-din` per workspace `AGENTS.md`.

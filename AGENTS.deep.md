@@ -9,7 +9,7 @@ Loaded ONLY when HOT context is insufficient.
 
 1. README.md
 2. docs/Architecture.md
-3. ../docs/summaries/din-core-api.md
+3. docs/summaries/din-core-api.md
 4. target/doc (max 2 pages)
 5. crates/** (last resort)
 

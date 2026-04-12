@@ -1,23 +1,14 @@
-# SKILL: registry-parity
+# SKILL: registry-parity (ARCHIVED)
 
-## REPO
+## Status
 
-`din-core`
+Exhaustive **NodeKind** / component registry parity in **`din-core`** is **removed**. Registry authority for editor nodes remains in **`react-din`** / **`din-studio`** as appropriate.
 
 ## WHEN TO USE
 
-- Node registry, node IDs, or interface metadata changes
-- A request mentions registry parity with public contracts or studio metadata
+- Only for historical reference or if reintroducing a registry **explicitly** scoped by a new task.
 
 ## STEPS
 
-1. Read the summary files, repo manifest, and `fixtures/canonical_patch.json`.
-2. Update registry logic in Rust first.
-3. Preserve persisted IDs and interface naming unless an explicit migration exists.
-4. Escalate only if shared IDs or public schema expectations change.
-
-## VALIDATION
-
-- `cargo fmt --all --check`
-- `cargo clippy --workspace --all-targets -- -D warnings`
-- `cargo test --workspace`
+1. Prefer `project/skills/v2-refactor-task/SKILL.md` for active work.
+2. Do not assume `fixtures/canonical_patch.json` or `NodeKind::ALL` gates in this repository.

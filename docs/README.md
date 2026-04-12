@@ -2,6 +2,8 @@
 
 English-only technical notes for the DinDocument v1 refactor tracked under `v2/specs` and `tasks/`.
 
+This repository no longer ships the legacy react-din **patch JSON** stack (`din-patch`), **C FFI** (`din-ffi`), native **DSP audio engines**, or exhaustive **NodeKind** registry parity. The supported surface is **DinDocument v2** only: typed model through WASM/worker helpers and a minimal **RuntimeSession** with transport / sequencer / bridge controllers.
+
 Each page corresponds to a Gherkin task in `tasks/todo` (active) or `v2/features` (completed).
 
 | Doc | Task | Crate |

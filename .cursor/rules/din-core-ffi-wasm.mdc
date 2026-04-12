@@ -1,7 +1,7 @@
 ---
-description: FFI and WASM targets
-globs: crates/din-ffi/**,crates/din-wasm/**
+description: din-core WASM wrapper discipline
+globs: crates/din-wasm/**
 alwaysApply: false
 ---
 
-Follow @AGENTS.md. Use @project/skills/multi-target-wrapper/SKILL.md; keep wrappers thin.
+Follow @AGENTS.md. Use @project/skills/multi-target-wrapper/SKILL.md; keep wrappers thin in `crates/din-wasm`.

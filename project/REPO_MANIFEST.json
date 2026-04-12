@@ -1,19 +1,17 @@
 {
-  "version": 1,
+  "version": 2,
   "repo": {
     "id": "din_core",
     "display_name": "din-core",
     "path": "din-core",
-    "role": "runtime",
+    "role": "din-document-runtime",
     "tags": [
       "rust",
-      "runtime",
-      "compiler",
-      "registry",
+      "din-document",
       "validation",
-      "migration",
-      "ffi",
-      "wasm"
+      "wasm",
+      "worker",
+      "open-din-v2"
     ],
     "depends_on": [
       "react_din"
@@ -23,28 +21,28 @@
       "din_agents"
     ],
     "entry_points": [
-      "crates/din-patch",
+      "crates/din-document",
       "crates/din-core",
-      "schemas/patch.schema.json",
-      "fixtures/canonical_patch.json"
+      "crates/din-wasm",
+      "fixtures/din-document-v1",
+      "project/features"
     ],
+    "feature_source": "project/features/*.feature",
     "owned_contracts": [
-      "runtime semantics",
-      "registry authority",
-      "patch validation",
-      "ffi",
-      "wasm"
+      "DinDocument native model (serde)",
+      "Parse and semantic validation",
+      "DocumentHandle and scene route graph views",
+      "RuntimeSession and transport/sequencer/bridge controllers",
+      "WASM validation, handles, worker JSON dispatch"
     ],
     "shared_contracts": [
-      "patch schema",
-      "serialization",
-      "persisted node ids",
-      "round-trip",
-      "registry"
+      "DinDocument JSON schema (open-din/v2)",
+      "serialization and fixture parity",
+      "native vs WASM validation diagnostics"
     ],
     "hard_boundaries": [
-      "Do not fork the public schema away from react-din.",
-      "Keep FFI and WASM wrappers thin.",
+      "Do not fork DinDocument schema away from open-din/v2 without coordination.",
+      "Keep WASM wrappers thin.",
       "Do not move editor logic into Rust crates."
     ],
     "validation_commands": [
@@ -54,7 +52,10 @@
     ],
     "route_card_path": "project/ROUTE_CARD.json",
     "summary_path": "project/SUMMARY.md",
-    "api_summary_path": "../docs/summaries/din-core-api.md",
+    "userflow_path": "project/USERFLOW.md",
+    "test_matrix_path": "project/TEST_MATRIX.md",
+    "api_summary_path": "docs/summaries/din-core-api.md",
+    "wasm_js_api_path": "crates/din-wasm/pkg/docs/api.md",
     "repo_manifest_path": "project/REPO_MANIFEST.json",
     "skills_path": "project/skills",
     "linked_manifests": []

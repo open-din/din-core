@@ -1,15 +1,19 @@
-//! DinDocument v1 WASM helpers: validation JSON, opaque document handles, worker envelope dispatch.
+//! DinDocument WASM helpers: validation JSON, opaque document handles, worker envelope dispatch.
 
 #![allow(missing_docs)]
 
+use din_core::{RuntimeSession, RuntimeSessionError};
 use din_document::{
     DocumentHandle, IssueCode, ValidationIssue, ValidationReport, parse_document_json_str,
     validate_document,
 };
 use serde::Deserialize;
 use serde_json::json;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use wasm_bindgen::prelude::*;
+
+/// Process-global runtime session for worker message families that require mutable state.
+static RUNTIME_SESSION: Mutex<Option<RuntimeSession>> = Mutex::new(None);
 
 /// Validation summary for JavaScript (stable `code` strings).
 #[derive(serde::Serialize)]
@@ -95,7 +99,36 @@ struct WorkerMessage {
     payload: serde_json::Value,
 }
 
-/// Minimal worker-style dispatcher returning JSON success envelopes.
+fn transport_snapshot(session: &RuntimeSession) -> serde_json::Value {
+    let t = session.transport();
+    json!({
+        "playing": t.playing(),
+        "paused": t.paused(),
+        "bpm": t.bpm(),
+        "seekBeats": t.seek_beats(),
+    })
+}
+
+fn sequencer_snapshot(session: &RuntimeSession) -> serde_json::Value {
+    let s = session.sequencer();
+    json!({
+        "generation": s.generation(),
+        "lastSequencerId": s.last_sequencer_id(),
+    })
+}
+
+fn runtime_envelope(session: &RuntimeSession) -> serde_json::Value {
+    json!({
+        "ok": true,
+        "accepted": true,
+        "sceneId": session.scene_id(),
+        "transport": transport_snapshot(session),
+        "sequencer": sequencer_snapshot(session),
+        "bridge": {},
+    })
+}
+
+/// Minimal worker-style dispatcher returning JSON success envelopes aligned with v2.
 #[wasm_bindgen(js_name = workerDispatchMessageJson)]
 pub fn worker_dispatch_message_json(json: &str) -> Result<JsValue, JsValue> {
     let out = worker_dispatch_message_json_impl(json).map_err(|e| JsValue::from_str(&e))?;
@@ -105,7 +138,7 @@ pub fn worker_dispatch_message_json(json: &str) -> Result<JsValue, JsValue> {
 /// Test helper mirroring [`worker_dispatch_message_json`].
 pub fn worker_dispatch_message_json_impl(json: &str) -> Result<serde_json::Value, String> {
     let msg: WorkerMessage = serde_json::from_str(json).map_err(|e| e.to_string())?;
-    let out = match msg.family.as_str() {
+    match msg.family.as_str() {
         "document/open" => {
             let text = msg
                 .payload
@@ -114,17 +147,71 @@ pub fn worker_dispatch_message_json_impl(json: &str) -> Result<serde_json::Value
                 .ok_or_else(|| "document/open requires payload.json string".to_string())?;
             let doc = parse_document_json_str(text).map_err(|e| e.message)?;
             let report = validate_document(&doc);
-            json!({
+            Ok(json!({
                 "ok": report.accepted,
                 "accepted": report.accepted,
                 "issueCodes": report.issues.iter().map(|i| i.code.as_str()).collect::<Vec<_>>(),
-            })
+            }))
         }
-        "runtime/create" => json!({ "ok": true, "detail": "stub" }),
-        "transport/tick" => json!({ "ok": true, "detail": "stub" }),
-        _ => return Err("unknown message family".to_string()),
-    };
-    Ok(out)
+        "runtime/create" => {
+            let text = msg
+                .payload
+                .get("json")
+                .and_then(|v| v.as_str())
+                .ok_or_else(|| "runtime/create requires payload.json string".to_string())?;
+            let doc = parse_document_json_str(text).map_err(|e| e.message)?;
+            let scene_id = msg
+                .payload
+                .get("sceneId")
+                .and_then(|v| v.as_str())
+                .filter(|s| !s.is_empty())
+                .map(str::to_owned)
+                .unwrap_or_else(|| doc.default_scene_id.clone());
+            let report = validate_document(&doc);
+            if !report.accepted {
+                return Ok(json!({
+                    "ok": false,
+                    "accepted": false,
+                    "issueCodes": report.issues.iter().map(|i| i.code.as_str()).collect::<Vec<_>>(),
+                }));
+            }
+            let handle = DocumentHandle::try_new(doc, &report)
+                .map_err(|_| "document handle could not be built from report".to_string())?;
+            let session = match RuntimeSession::new(Arc::new(handle), scene_id.as_str()) {
+                Ok(s) => s,
+                Err(RuntimeSessionError::UnknownScene(id)) => {
+                    return Ok(json!({
+                        "ok": false,
+                        "accepted": false,
+                        "error": {
+                            "code": "UnknownScene",
+                            "message": format!("unknown scene id {:?}", id),
+                        }
+                    }));
+                }
+            };
+            let out = runtime_envelope(&session);
+            *RUNTIME_SESSION
+                .lock()
+                .map_err(|_| "runtime session mutex poisoned".to_string())? = Some(session);
+            Ok(out)
+        }
+        "transport/tick" => {
+            let mut guard = RUNTIME_SESSION
+                .lock()
+                .map_err(|_| "runtime session mutex poisoned".to_string())?;
+            let session = guard
+                .as_mut()
+                .ok_or_else(|| "runtime not initialized; send runtime/create first".to_string())?;
+            session.transport_mut().tick();
+            Ok(json!({
+                "ok": true,
+                "transport": transport_snapshot(session),
+                "sequencer": sequencer_snapshot(session),
+            }))
+        }
+        _ => Err("unknown message family".to_string()),
+    }
 }
 
 /// Native-test helper: same logic as [`din_document_validate_json`] but returns `serde_json::Value`.
@@ -143,4 +230,10 @@ pub fn din_document_validate_json_impl(json: &str) -> serde_json::Value {
             validation_report_to_value(&report)
         }
     }
+}
+
+/// Exposes [`din_core::DIN_CORE_VERSION`] to JavaScript.
+#[wasm_bindgen(js_name = dinCoreVersion)]
+pub fn din_core_version() -> String {
+    din_core::DIN_CORE_VERSION.to_owned()
 }

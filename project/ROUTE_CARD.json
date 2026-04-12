@@ -1,26 +1,106 @@
 {
-  "version": 1,
+  "version": 2,
   "repo": "din-core",
-  "role": "runtime",
+  "role": "din-document-runtime",
   "route_when": [
-    "runtime behavior",
-    "compiler",
-    "registry",
+    "DinDocument model",
+    "parse",
     "validation",
-    "migration",
-    "FFI",
-    "WASM"
+    "DocumentHandle",
+    "graph view",
+    "runtime session",
+    "WASM",
+    "worker messages"
   ],
   "load_order": [
     "project/ROUTE_CARD.json",
+    "project/SUMMARY.md",
+    "project/USERFLOW.md",
+    "project/TEST_MATRIX.md",
     "project/skills/<matching-skill>/SKILL.md",
+    "project/features/<nn>-*.feature",
     "exact crate module",
     "exact regression test",
-    "fixtures/canonical_patch.json only when contract parity matters"
+    "fixtures/din-document-v1/"
+  ],
+  "features_glob": "project/features/*.feature",
+  "features": [
+    {
+      "id": "01",
+      "file": "project/features/01-dindocument-typed-model.feature",
+      "crates": ["din-document"],
+      "docs_v2": "docs_v2/01-dindocument-typed-model.md"
+    },
+    {
+      "id": "02",
+      "file": "project/features/02-parse-pipeline.feature",
+      "crates": ["din-document"],
+      "docs_v2": "docs_v2/02-parse-pipeline.md"
+    },
+    {
+      "id": "03",
+      "file": "project/features/03-validation-and-diagnostics.feature",
+      "crates": ["din-document"],
+      "docs_v2": "docs_v2/03-validation-and-diagnostics.md"
+    },
+    {
+      "id": "04",
+      "file": "project/features/04-document-handle-query.feature",
+      "crates": ["din-document"],
+      "docs_v2": "docs_v2/04-document-handle-query.md"
+    },
+    {
+      "id": "05",
+      "file": "project/features/05-graph-view.feature",
+      "crates": ["din-document"],
+      "docs_v2": "docs_v2/05-graph-view.md"
+    },
+    {
+      "id": "06",
+      "file": "project/features/06-runtime-session.feature",
+      "crates": ["din-core"],
+      "docs_v2": "docs_v2/06-runtime-session.md"
+    },
+    {
+      "id": "07",
+      "file": "project/features/07-transport-sequencer-bridge.feature",
+      "crates": ["din-core"],
+      "docs_v2": "docs_v2/07-transport-sequencer-bridge.md"
+    },
+    {
+      "id": "08",
+      "file": "project/features/08-wasm-bindings.feature",
+      "crates": ["din-wasm"],
+      "docs_v2": "docs_v2/08-wasm-bindings.md"
+    },
+    {
+      "id": "09",
+      "file": "project/features/09-worker-message-contract.feature",
+      "crates": ["din-wasm"],
+      "docs_v2": "docs_v2/09-worker-message-contract.md"
+    },
+    {
+      "id": "10",
+      "file": "project/features/10-cross-target-parity.feature",
+      "crates": ["din-document", "din-wasm"],
+      "docs_v2": "docs_v2/10-cross-target-parity.md"
+    },
+    {
+      "id": "11",
+      "file": "project/features/11-execution-profile.feature",
+      "crates": ["din-document"],
+      "docs_v2": "docs_v2/11-execution-profile.md"
+    },
+    {
+      "id": "12",
+      "file": "project/features/12-host-binding-profile.feature",
+      "crates": ["din-document"],
+      "docs_v2": "docs_v2/12-host-binding-profile.md"
+    }
   ],
   "do_not_route": {
     "react-din": [
-      "published schema",
+      "published patch schema",
       "package exports",
       "docs/components"
     ],
@@ -35,29 +115,34 @@
     ]
   },
   "entry_points": [
-    "crates/din-core/src/engine.rs",
-    "crates/din-core/src/graph.rs",
-    "crates/din-core/src/registry.rs",
     "crates/din-document/src/lib.rs",
-    "crates/din-patch/src/document.rs",
-    "fixtures/canonical_patch.json"
+    "crates/din-core/src/lib.rs",
+    "crates/din-core/src/runtime.rs",
+    "crates/din-wasm/src/lib.rs",
+    "crates/din-wasm/src/din_document_wasm.rs",
+    "fixtures/din-document-v1/"
   ],
   "task_slices": {
-    "runtime_bug": "crates/din-core/src/engine.rs",
-    "registry_parity": "crates/din-core/src/registry.rs",
-    "patch_contract": "crates/din-patch/src/document.rs",
-    "din_document_v1": "crates/din-document/src/lib.rs"
+    "din_document_model": "crates/din-document/src/model.rs",
+    "parse": "crates/din-document/src/parse.rs",
+    "validation": "crates/din-document/src/validate.rs",
+    "handle": "crates/din-document/src/handle.rs",
+    "graph": "crates/din-document/src/graph.rs",
+    "runtime_session": "crates/din-core/src/runtime.rs",
+    "wasm_worker": "crates/din-wasm/src/din_document_wasm.rs"
+  },
+  "api_docs": {
+    "rust_summary_markdown": "docs/summaries/din-core-api.md",
+    "wasm_javascript_reference": "crates/din-wasm/pkg/docs/api.md"
   },
   "hard_boundaries": [
-    "react-din owns the published patch schema.",
-    "Persisted node ids stay stable.",
-    "Keep FFI and WASM wrappers thin."
+    "react-din owns the published patch schema for legacy graphs; new work uses DinDocument v2 in this repo.",
+    "Keep WASM wrappers thin; validation logic stays in din-document."
   ],
   "shared_contract_escalation": [
-    "patch schema",
+    "DinDocument schema (open-din/v2)",
     "serialization",
-    "persisted node ids",
-    "round-trip parity"
+    "round-trip parity with open-din/v2 examples"
   ],
   "validation_commands": [
     "cargo fmt --all --check",

@@ -2,8 +2,6 @@
 members = [
     "crates/din-core",
     "crates/din-document",
-    "crates/din-ffi",
-    "crates/din-patch",
     "crates/din-wasm",
 ]
 resolver = "3"

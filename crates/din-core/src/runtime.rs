@@ -1,6 +1,6 @@
-//! DinDocument v1 runtime session skeleton (mutable state bound to one scene).
+//! DinDocument runtime session and transport / sequencer / bridge controllers (v2 surface).
 //!
-//! See `v2/specs/03-core-api.md` and `v2/specs/05-runtime-transport.md`.
+//! Typed document model, parse, validation, handle, and graph live in [`din_document`].
 
 use din_document::DocumentHandle;
 use std::sync::Arc;
@@ -44,7 +44,7 @@ impl RuntimeSession {
         &self.scene_id
     }
 
-    /// Immutable document handle (includes the [`DinDocument`]).
+    /// Immutable document handle (includes the [`DinDocument`](din_document::DinDocument)).
     pub fn document_handle(&self) -> &DocumentHandle {
         self.handle.as_ref()
     }
@@ -177,7 +177,6 @@ impl TransportController {
 
     /// Worker/audio-thread safe tick: updates only inline state (no allocation).
     pub fn tick(&mut self) {
-        // Placeholder for clock integration; intentionally allocation-free.
         if self.paused {
             return;
         }

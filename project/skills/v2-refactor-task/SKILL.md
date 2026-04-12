@@ -28,7 +28,7 @@
 ## CONSTRAINTS
 
 - **English only** for user stories, tasks, and `docs_v2`.
-- Do not weaken `din-patch` / WASM contracts without an explicit task and, where needed, `react-din` coordination.
+- Breaking changes to **react-din patch** contracts are out of scope unless coordinated; this repo’s live surface is **DinDocument v2** and minimal runtime session.
 
 ## VALIDATION
 

@@ -10,36 +10,34 @@
 
 ## ROUTE HERE WHEN
 
-- The request changes runtime, compiler, registry, migration, validation, FFI, or WASM behavior.
-- The request changes canonical fixtures or Rust round-trip behavior.
+- The request changes DinDocument parsing, validation, handles, graph views, runtime session, WASM bindings, or worker message contracts.
+- The request changes canonical DinDocument fixtures or Rust round-trip behavior under `fixtures/din-document-v1/`.
 
 ## ROUTE AWAY WHEN
 
-- Public API, exports, docs/components, or published schema -> `react-din`
+- Public patch schema, react-din package exports, or docs/components -> `react-din`
 - Editor, MCP, launcher, or shell work -> `din-studio`
 - Workspace routing or automation -> `din-agents`
 
 ## ENTRY POINTS
 
 - `project/ROUTE_CARD.json`
-- `crates/din-core/src/engine.rs`
-- `crates/din-core/src/registry.rs`
-- `crates/din-patch/src/document.rs`
+- `crates/din-document/src/lib.rs`
+- `crates/din-core/src/lib.rs` / `crates/din-core/src/runtime.rs`
+- `crates/din-wasm/src/din_document_wasm.rs`
 
 ## SKILL MAP
 
-- Patch contract change -> `project/skills/patch-contract-change/SKILL.md`
-- Registry or node ID change -> `project/skills/registry-parity/SKILL.md`
+- DinDocument v2 / `v2/specs` tasks -> `project/skills/v2-refactor-task/SKILL.md` (primary workflow)
 - FFI or WASM work -> `project/skills/multi-target-wrapper/SKILL.md`
 - Rust gates -> `project/skills/rust-quality-gates/SKILL.md`
-- DinDocument v1 / `v2/specs` refactor tasks -> `project/skills/v2-refactor-task/SKILL.md`
+- Legacy patch-schema / registry skills -> `project/skills/patch-contract-change/SKILL.md`, `project/skills/registry-parity/SKILL.md` (archived; do not use for new work unless explicitly restoring V1 artifacts)
 
 ## HARD RULES
 
-- `react-din` owns the published schema; this repo owns runtime semantics and registry authority.
-- Persisted node IDs stay stable.
-- Open `fixtures/canonical_patch.json` only when patch parity or round-trip behavior is in scope.
-- Keep FFI and WASM thin.
+- `react-din` owns the published patch JSON schema; this repo’s active contract is **DinDocument v2** (`din-document`, `din-wasm`).
+- Keep WASM wrappers thin; no duplicate validation logic outside `din-document`.
+- Open `fixtures/din-document-v1/` for DinDocument examples; legacy `fixtures/canonical_patch.json` is not part of the v2 CI surface.
 
 ## VALIDATION
 

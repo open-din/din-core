@@ -1,7 +1,7 @@
 ---
-description: Patch and registry crates
-globs: crates/din-patch/**,crates/din-core/**
+description: Legacy patch/registry (archived in din-core)
+globs: crates/din-core/**,crates/din-document/**
 alwaysApply: false
 ---
 
-Follow @AGENTS.md. Use @project/skills/patch-contract-change/SKILL.md and @project/skills/registry-parity/SKILL.md. Authoritative references: `schemas/patch.schema.json`, `fixtures/canonical_patch.json`.
+The `din-patch` crate and exhaustive NodeKind registry are **not** part of this workspace. For active work follow @AGENTS.md and @project/skills/v2-refactor-task/SKILL.md. Legacy patch schema lives in **react-din**.
