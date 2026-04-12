@@ -1,0 +1,15 @@
+{
+  "format": "open-din/din-document",
+  "version": 1,
+  "asset": {
+    "title": "Invalid Default Scene"
+  },
+  "collections": {},
+  "defaultSceneId": "missing-scene",
+  "scenes": [
+    {
+      "id": "main",
+      "name": "Main"
+    }
+  ]
+}

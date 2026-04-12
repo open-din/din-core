@@ -38,13 +38,15 @@
     "crates/din-core/src/engine.rs",
     "crates/din-core/src/graph.rs",
     "crates/din-core/src/registry.rs",
+    "crates/din-document/src/lib.rs",
     "crates/din-patch/src/document.rs",
     "fixtures/canonical_patch.json"
   ],
   "task_slices": {
     "runtime_bug": "crates/din-core/src/engine.rs",
     "registry_parity": "crates/din-core/src/registry.rs",
-    "patch_contract": "crates/din-patch/src/document.rs"
+    "patch_contract": "crates/din-patch/src/document.rs",
+    "din_document_v1": "crates/din-document/src/lib.rs"
   },
   "hard_boundaries": [
     "react-din owns the published patch schema.",

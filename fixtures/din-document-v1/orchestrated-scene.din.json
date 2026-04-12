@@ -1,0 +1,280 @@
+{
+  "format": "open-din/din-document",
+  "version": 1,
+  "asset": {
+    "title": "Unified Scene Orchestration",
+    "generator": "open-din/spec/examples"
+  },
+  "assetRoot": "./",
+  "collections": {
+    "buffers": [
+      {
+        "id": "buf-kick-loop",
+        "uri": "audio/kick-loop.raw",
+        "byteLength": 384000,
+        "mimeType": "application/octet-stream"
+      },
+      {
+        "id": "buf-pattern",
+        "uri": "midi/kick-pattern.mid",
+        "byteLength": 1024,
+        "mimeType": "audio/midi"
+      }
+    ],
+    "bufferViews": [],
+    "audioSources": [
+      {
+        "id": "kickLoop",
+        "buffer": "buf-kick-loop",
+        "sampleRate": 48000,
+        "channels": 2,
+        "layout": "interleaved",
+        "format": "pcm-f32"
+      }
+    ],
+    "midiSources": [
+      {
+        "id": "kickPattern",
+        "buffer": "buf-pattern",
+        "format": "smf-type-1",
+        "label": "Kick Pattern"
+      }
+    ],
+    "sampleSlots": [],
+    "impulses": [],
+    "dspModules": [
+      {
+        "id": "sampler-module",
+        "name": "Sampler",
+        "inputs": [
+          {
+            "id": "sample",
+            "type": "audio",
+            "channels": 2
+          },
+          {
+            "id": "trigger",
+            "type": "midi"
+          }
+        ],
+        "outputs": [
+          {
+            "id": "out",
+            "type": "audio",
+            "channels": 2
+          }
+        ]
+      },
+      {
+        "id": "reverb-module",
+        "name": "Reverb",
+        "inputs": [
+          {
+            "id": "in",
+            "type": "audio",
+            "channels": 2
+          },
+          {
+            "id": "mix",
+            "type": "number",
+            "range": {
+              "min": 0,
+              "max": 1,
+              "unit": "normalized",
+              "scale": "linear"
+            }
+          }
+        ],
+        "outputs": [
+          {
+            "id": "out",
+            "type": "audio",
+            "channels": 2
+          }
+        ]
+      }
+    ]
+  },
+  "defaultSceneId": "main",
+  "scenes": [
+    {
+      "id": "main",
+      "name": "Main Scene",
+      "dsp": [
+        {
+          "id": "samplerA",
+          "module": "sampler-module"
+        },
+        {
+          "id": "verbA",
+          "module": "reverb-module"
+        }
+      ],
+      "inputs": [
+        {
+          "id": "tempoMacro",
+          "type": "number",
+          "label": "Tempo",
+          "range": {
+            "min": 60,
+            "max": 180,
+            "unit": "bpm",
+            "scale": "linear"
+          },
+          "default": 118
+        }
+      ],
+      "outputs": [
+        {
+          "id": "mainOut",
+          "type": "audio",
+          "channels": 2
+        }
+      ],
+      "transport": {
+        "enabled": true,
+        "playing": true,
+        "bpm": 118,
+        "timeSignature": {
+          "numerator": 4,
+          "denominator": 4
+        }
+      },
+      "timeline": {
+        "tracks": [
+          {
+            "id": "kickTrack",
+            "type": "midi",
+            "clips": [
+              {
+                "id": "kickClip",
+                "startBeat": 0,
+                "lengthBeats": 16,
+                "midiSourceId": "kickPattern"
+              }
+            ]
+          },
+          {
+            "id": "verbMixTrack",
+            "type": "automation",
+            "points": [
+              {
+                "beat": 0,
+                "value": 0.15
+              },
+              {
+                "beat": 8,
+                "value": 0.35
+              },
+              {
+                "beat": 16,
+                "value": 0.2
+              }
+            ],
+            "interpolation": "linear"
+          }
+        ],
+        "sequencers": [
+          {
+            "id": "kickSequencer",
+            "type": "midi",
+            "playback": {
+              "mode": "loop",
+              "startBeat": 0,
+              "loopLengthBeats": 16
+            }
+          }
+        ]
+      },
+      "routes": [
+        {
+          "from": {
+            "kind": "sceneInput",
+            "inputId": "tempoMacro"
+          },
+          "to": {
+            "kind": "transport",
+            "member": "bpm"
+          }
+        },
+        {
+          "from": {
+            "kind": "audioSource",
+            "audioSourceId": "kickLoop"
+          },
+          "to": {
+            "kind": "dspPort",
+            "dspId": "samplerA",
+            "portId": "sample"
+          }
+        },
+        {
+          "from": {
+            "kind": "track",
+            "trackId": "kickTrack"
+          },
+          "to": {
+            "kind": "sequencer",
+            "sequencerId": "kickSequencer"
+          }
+        },
+        {
+          "from": {
+            "kind": "sequencer",
+            "sequencerId": "kickSequencer"
+          },
+          "to": {
+            "kind": "dspPort",
+            "dspId": "samplerA",
+            "portId": "trigger"
+          }
+        },
+        {
+          "from": {
+            "kind": "track",
+            "trackId": "verbMixTrack"
+          },
+          "to": {
+            "kind": "dspPort",
+            "dspId": "verbA",
+            "portId": "mix"
+          },
+          "transform": {
+            "sourceMin": 0,
+            "sourceMax": 1,
+            "targetMin": 0,
+            "targetMax": 1,
+            "clamp": true,
+            "smoothingMs": 20
+          }
+        },
+        {
+          "from": {
+            "kind": "dspPort",
+            "dspId": "samplerA",
+            "portId": "out"
+          },
+          "to": {
+            "kind": "dspPort",
+            "dspId": "verbA",
+            "portId": "in"
+          }
+        },
+        {
+          "from": {
+            "kind": "dspPort",
+            "dspId": "verbA",
+            "portId": "out"
+          },
+          "to": {
+            "kind": "sceneOutput",
+            "outputId": "mainOut"
+          }
+        }
+      ]
+    }
+  ],
+  "extensionsUsed": [],
+  "extensionsRequired": [],
+  "extensions": {}
+}

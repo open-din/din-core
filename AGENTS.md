@@ -32,6 +32,7 @@
 - Registry or node ID change -> `project/skills/registry-parity/SKILL.md`
 - FFI or WASM work -> `project/skills/multi-target-wrapper/SKILL.md`
 - Rust gates -> `project/skills/rust-quality-gates/SKILL.md`
+- DinDocument v1 / `v2/specs` refactor tasks -> `project/skills/v2-refactor-task/SKILL.md`
 
 ## HARD RULES
 

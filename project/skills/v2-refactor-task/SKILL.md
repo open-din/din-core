@@ -1,0 +1,32 @@
+# SKILL: v2-refactor-task
+
+## REPO
+
+`din-core`
+
+## WHEN TO USE
+
+- Implementing or reviewing work tracked as Gherkin tasks under `tasks/todo`, `tasks/doing`, or `tasks/done`.
+- Refactoring toward DinDocument v1 and `v2/specs`, using `open-din/v2` as the normative document format reference.
+
+## STEPS
+
+1. Read `AGENTS.md`, `project/ROUTE_CARD.json`, and this skill.
+2. Pick **one** task file from `tasks/todo/*.feature` and move it to `tasks/doing/`.
+3. Read linked sections in `v2/specs` and the relevant `open-din/v2` schema or examples cited in the task comments.
+4. **TDD**: add failing tests first (unit + integration against `fixtures/din-document-v1/` where applicable), then implement.
+5. Add or update **rustdoc** (`///`) for all new public API in scope.
+6. Add or update **`docs_v2/<task-slug>.md`** describing behavior, error codes, fixtures, and link to the Gherkin task path.
+7. Run `cargo fmt --all`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`.
+8. Move the task file from `tasks/doing/` to `tasks/done/`, then to **`v2/features/`** once documentation is complete.
+
+## CONSTRAINTS
+
+- **English only** for user stories, tasks, and `docs_v2`.
+- Do not weaken `din-patch` / WASM contracts without an explicit task and, where needed, `react-din` coordination.
+
+## VALIDATION
+
+- `cargo fmt --all --check`
+- `cargo clippy --workspace --all-targets -- -D warnings`
+- `cargo test --workspace`

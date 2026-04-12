@@ -1,0 +1,41 @@
+---
+description: DinDocument v1 / din-core v2 refactor workflow — Gherkin tasks, TDD, docs_v2, English only.
+globs:
+  - v2/**/*
+  - tasks/**/*
+  - docs_v2/**/*
+  - fixtures/din-document-v1/**/*
+  - crates/din-document/**/*
+alwaysApply: false
+---
+
+# din-core v2 task workflow
+
+Follow `AGENTS.md` load order first.
+
+## Authority
+
+- **Normative interchange**: sibling workspace `open-din/v2` (schemas, markdown specs, examples).
+- **Implementation dossier**: `v2/specs/*.md` in this repo.
+- When `v2/specs` or `open-din/v2` conflict with legacy `din-patch` / engine behavior, **v2 specs and DinDocument v1 take precedence** for new work.
+
+## Language
+
+All artifacts under `v2/user-stories`, `tasks/**`, `docs_v2`, and `v2/features` MUST be **English only**.
+
+## Task lifecycle
+
+1. **todo** — `tasks/todo/*.feature`: ready to implement.
+2. **doing** — move one task file to `tasks/doing/` while actively working (prefer a single WIP per branch).
+3. **done** — after implementation passes `cargo fmt`, `clippy`, and `cargo test`, move to `tasks/done/`.
+4. **archived** — update `docs_v2` for that task, then move the Gherkin file to `v2/features/` as the permanent completed record.
+
+## TDD and documentation
+
+- Write or extend **tests before** or **in the same commit** as production code for each task.
+- Every new public type or function in scope of a task MUST be covered by **module docs** (`///`) and linked from the matching `docs_v2/*.md` page for that task.
+- Use fixtures under `fixtures/din-document-v1/` (synced from `open-din/v2/examples` when possible) so `din-core` CI stays self-contained.
+
+## Escalation
+
+Persisted interchange IDs or published JSON schema changes require coordination with `react-din` per `AGENTS.md` HARD RULES.

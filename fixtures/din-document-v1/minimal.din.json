@@ -1,0 +1,27 @@
+{
+  "format": "open-din/din-document",
+  "version": 1,
+  "asset": {
+    "title": "Minimal DinDocument"
+  },
+  "assetRoot": "./",
+  "collections": {
+    "buffers": [],
+    "bufferViews": [],
+    "audioSources": [],
+    "midiSources": [],
+    "sampleSlots": [],
+    "impulses": [],
+    "dspModules": []
+  },
+  "defaultSceneId": "blank",
+  "scenes": [
+    {
+      "id": "blank",
+      "name": "Blank Scene"
+    }
+  ],
+  "extensionsUsed": [],
+  "extensionsRequired": [],
+  "extensions": {}
+}

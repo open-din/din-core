@@ -1,0 +1,33 @@
+{
+  "format": "open-din/din-document",
+  "version": 1,
+  "asset": {
+    "title": "Invalid Enum Value"
+  },
+  "collections": {
+    "buffers": [
+      {
+        "id": "buf",
+        "uri": "audio/raw.bin",
+        "byteLength": 32
+      }
+    ],
+    "audioSources": [
+      {
+        "id": "src",
+        "buffer": "buf",
+        "sampleRate": 48000,
+        "channels": 2,
+        "layout": "interleaved",
+        "format": "pcm-f16"
+      }
+    ]
+  },
+  "defaultSceneId": "main",
+  "scenes": [
+    {
+      "id": "main",
+      "name": "Main"
+    }
+  ]
+}
